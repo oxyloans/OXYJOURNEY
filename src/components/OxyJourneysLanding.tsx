@@ -6,7 +6,7 @@ type LandingProps = {
   onSearch?: (query: string) => Promise<string>;
 };
 
-const LOGO = "https://i.ibb.co/gbh10qKV/journeys-logo.png";
+const LOGO = "https://i.ibb.co/XxJJRXx5/jun-logo.png";
 
 const EXAMPLE =
   "I am a salaried person looking for a home loan.";
