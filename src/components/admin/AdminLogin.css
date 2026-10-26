@@ -1,0 +1,389 @@
+/* ==========================================================================
+   OXY JOURNEYS - ADMIN LOGIN STYLESHEET
+   Clean, Responsive, Premium UI/UX across all mobile, tablet & desktop devices
+   ========================================================================== */
+
+.al-container {
+  min-height: 100vh;
+  min-height: 100dvh;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #f8fafc;
+  background-image: 
+    radial-gradient(at 10% 20%, rgba(99, 102, 241, 0.08) 0px, transparent 50%),
+    radial-gradient(at 90% 10%, rgba(14, 165, 233, 0.08) 0px, transparent 50%),
+    radial-gradient(at 50% 90%, rgba(139, 92, 246, 0.06) 0px, transparent 50%);
+  color: #0f172a;
+  font-family: "Manrope", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  position: relative;
+  overflow: hidden;
+  padding: 32px 16px;
+  box-sizing: border-box;
+}
+
+/* Ambient glow orbs */
+.al-glow {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(100px);
+  pointer-events: none;
+  opacity: 0.6;
+}
+
+.al-glow-1 {
+  width: 500px;
+  height: 500px;
+  background: radial-gradient(circle, rgba(99, 102, 241, 0.22) 0%, transparent 70%);
+  top: -120px;
+  left: 15%;
+  animation: alFloat 12s ease-in-out infinite alternate;
+}
+
+.al-glow-2 {
+  width: 440px;
+  height: 440px;
+  background: radial-gradient(circle, rgba(14, 165, 233, 0.18) 0%, transparent 70%);
+  bottom: -100px;
+  right: 15%;
+  animation: alFloat 10s ease-in-out infinite alternate-reverse;
+}
+
+.al-glow-3 {
+  width: 320px;
+  height: 320px;
+  background: radial-gradient(circle, rgba(168, 85, 247, 0.12) 0%, transparent 70%);
+  top: 45%;
+  left: 65%;
+}
+
+@keyframes alFloat {
+  0% { transform: translateY(0) scale(1); }
+  100% { transform: translateY(20px) scale(1.05); }
+}
+
+.al-card-wrapper {
+  position: relative;
+  z-index: 10;
+  width: 100%;
+  max-width: 460px;
+  margin: auto;
+  box-sizing: border-box;
+}
+
+.al-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 24px;
+  padding: 40px 36px;
+  box-shadow: 
+    0 10px 25px -5px rgba(15, 23, 42, 0.05),
+    0 20px 48px -12px rgba(99, 102, 241, 0.12),
+    0 0 0 1px rgba(15, 23, 42, 0.03);
+  transition: box-shadow 0.3s ease, border-color 0.3s ease;
+  box-sizing: border-box;
+}
+
+.al-card:hover {
+  border-color: #cbd5e1;
+}
+
+.al-header {
+  text-align: center;
+  margin-bottom: 28px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.al-brand-wrapper {
+  margin-bottom: 20px;
+}
+
+.al-brand-logo {
+  height: 42px;
+  width: auto;
+  max-width: 220px;
+  object-fit: contain;
+  display: block;
+}
+
+.al-title {
+  margin: 0;
+  font-size: 26px;
+  font-weight: 800;
+  color: #0f172a;
+  letter-spacing: -0.025em;
+  line-height: 1.25;
+}
+
+.al-error-banner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #b91c1c;
+  padding: 12px 16px;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 500;
+  margin-bottom: 22px;
+  animation: alSlideIn 0.25s ease-out;
+}
+
+.al-error-icon {
+  flex-shrink: 0;
+  color: #dc2626;
+}
+
+@keyframes alSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.al-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.al-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.al-field-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.al-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #334155;
+  letter-spacing: 0.01em;
+}
+
+.al-input-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.al-input-icon {
+  position: absolute;
+  left: 14px;
+  color: #94a3b8;
+  pointer-events: none;
+  transition: color 0.2s ease;
+}
+
+.al-input {
+  width: 100%;
+  padding: 12px 42px 12px 42px;
+  background: #f8fafc;
+  border: 1px solid #cbd5e1;
+  border-radius: 12px;
+  color: #0f172a;
+  font-size: 14px;
+  box-sizing: border-box;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.al-input:hover {
+  border-color: #94a3b8;
+  background: #ffffff;
+}
+
+.al-input:focus {
+  outline: none;
+  background: #ffffff;
+  border-color: #4f46e5;
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
+}
+
+.al-input-wrap:focus-within .al-input-icon {
+  color: #4f46e5;
+}
+
+.al-input::placeholder {
+  color: #94a3b8;
+  font-weight: 400;
+}
+
+.al-pwd-toggle {
+  position: absolute;
+  right: 10px;
+  background: none;
+  border: none;
+  color: #94a3b8;
+  cursor: pointer;
+  padding: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  transition: color 0.15s ease, background 0.15s ease;
+}
+
+.al-pwd-toggle:hover {
+  color: #334155;
+  background: #f1f5f9;
+}
+
+.al-options {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: -4px;
+}
+
+.al-remember {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: #475569;
+  cursor: pointer;
+  user-select: none;
+}
+
+.al-remember input {
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+  border: 1px solid #cbd5e1;
+  accent-color: #4f46e5;
+  cursor: pointer;
+}
+
+.al-submit-btn {
+  width: 100%;
+  padding: 13px 18px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #4f46e5 0%, #4338ca 100%);
+  border: none;
+  color: #ffffff;
+  font-size: 14.5px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 14px rgba(79, 70, 229, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
+  box-sizing: border-box;
+}
+
+.al-submit-btn:hover:not(:disabled) {
+  background: linear-gradient(135deg, #4338ca 0%, #3730a3 100%);
+  box-shadow: 0 6px 20px rgba(79, 70, 229, 0.4);
+  transform: translateY(-1px);
+}
+
+.al-submit-btn:active:not(:disabled) {
+  transform: translateY(1px);
+  box-shadow: 0 2px 8px rgba(79, 70, 229, 0.25);
+}
+
+.al-submit-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.al-btn-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.al-btn-arrow {
+  transition: transform 0.2s ease;
+}
+
+.al-submit-btn:hover:not(:disabled) .al-btn-arrow {
+  transform: translateX(3px);
+}
+
+.al-btn-loader {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.al-spinner {
+  width: 18px;
+  height: 18px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: #ffffff;
+  border-radius: 50%;
+  animation: alSpin 0.7s linear infinite;
+  display: inline-block;
+}
+
+@keyframes alSpin {
+  to { transform: rotate(360deg); }
+}
+
+/* Responsive queries */
+@media (max-width: 640px) {
+  .al-container {
+    padding: 20px 14px;
+    align-items: center;
+  }
+  .al-card {
+    padding: 30px 22px;
+    border-radius: 20px;
+  }
+  .al-header {
+    margin-bottom: 22px;
+  }
+  .al-brand-wrapper {
+    margin-bottom: 14px;
+  }
+  .al-title {
+    font-size: 22px;
+  }
+  .al-input {
+    font-size: 16px !important; /* Prevents auto-zoom on iOS Safari */
+    padding-top: 13px;
+    padding-bottom: 13px;
+  }
+  .al-submit-btn {
+    min-height: 48px;
+    font-size: 15px;
+  }
+  .al-pwd-toggle {
+    min-width: 44px;
+    min-height: 44px;
+  }
+}
+
+@media (max-width: 380px) {
+  .al-container {
+    padding: 16px 10px;
+  }
+  .al-card {
+    padding: 24px 16px;
+    border-radius: 18px;
+  }
+  .al-brand-logo {
+    height: 34px;
+  }
+  .al-title {
+    font-size: 20px;
+  }
+}

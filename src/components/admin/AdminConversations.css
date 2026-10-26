@@ -1,0 +1,93 @@
+/* Admin conversations: a plain list on the left, the selected chat on the right. */
+.ac-shell,.ac-shell *,.ac-shell *::before,.ac-shell *::after{box-sizing:border-box}
+.ac-shell{display:grid;grid-template-columns:340px minmax(0,1fr);height:clamp(520px,calc(100dvh - 280px),860px);border:1px solid #e3e8f3;border-radius:22px;overflow:hidden;background:#fff;box-shadow:0 2px 6px rgba(15,23,42,.04),0 20px 48px rgba(30,41,90,.07);font-family:"Manrope","Inter","Segoe UI",system-ui,sans-serif;color:#1b2233}
+
+/* List */
+.ac-list{display:flex;flex-direction:column;min-width:0;min-height:0;border-right:1px solid #e8ebf4;background:#fafbff}
+.ac-list-scroll{flex:1;min-height:0;overflow-y:auto;padding:10px;scrollbar-width:thin;scrollbar-color:#d4d9e6 transparent}
+.ac-list-empty{margin:24px 10px;color:#7a8296;font-size:13px;text-align:center}
+.ac-item{display:flex;align-items:flex-start;gap:12px;width:100%;margin:0 0 4px;padding:12px;overflow:hidden;border:1px solid transparent;border-radius:16px;background:transparent;color:inherit;font:inherit;text-align:left;cursor:pointer;transition:background .15s,border-color .15s}
+.ac-item:hover{background:#fff;border-color:#e6e9f4}
+.ac-item.is-active{background:#fff;border-color:#c9d3fb;box-shadow:0 6px 16px rgba(79,70,229,.08)}
+.ac-item-body{display:grid;grid-template-columns:minmax(0,1fr);gap:3px;min-width:0;flex:1}
+.ac-item-top{display:flex;align-items:baseline;justify-content:space-between;gap:8px}
+.ac-item-top strong{overflow:hidden;font-size:13.5px;font-weight:750;text-overflow:ellipsis;white-space:nowrap}
+.ac-item-top i,.ac-thread-head i{color:#9aa3b8;font-style:normal;font-weight:700;padding:0 2px}
+.ac-item-top time{flex:0 0 auto;color:#8a93a6;font-size:11.5px}
+.ac-item-preview{display:-webkit-box;overflow:hidden;color:#5d667b;font-size:12.5px;line-height:1.5;-webkit-box-orient:vertical;-webkit-line-clamp:2}
+
+/* Avatars */
+.ac-avatar{display:grid;place-items:center;flex:0 0 auto;width:36px;height:36px;border-radius:12px;font-size:13px;font-weight:800}
+.ac-avatar.is-user{background:linear-gradient(145deg,#e6efff,#d9e6ff);color:#2c5bb8}
+.ac-avatar.is-partner{background:linear-gradient(145deg,#e4f7ed,#d3f0e2);color:#12805c}
+.ac-avatar.is-ai{background:linear-gradient(145deg,#eeeaff,#e9f2ff);color:#6249c4}
+.ac-avatar-spacer{flex:0 0 36px;width:36px}
+
+/* Thread */
+.ac-thread{display:flex;flex-direction:column;min-width:0;min-height:0;background:#fff}
+.ac-thread-head{display:flex;align-items:center;gap:12px;padding:16px 24px;border-bottom:1px solid #eef0f6}
+.ac-thread-head h3{margin:0;overflow:hidden;font-size:16px;font-weight:800;letter-spacing:-.01em;text-overflow:ellipsis;white-space:nowrap}
+.ac-back{display:none;align-items:center;justify-content:center;width:36px;height:36px;border:1px solid #e3e8f2;border-radius:12px;background:#fff;color:#4b5468;cursor:pointer}
+.ac-thread-empty{flex:1;display:grid;place-items:center;color:#c0c6d4}
+
+/* Messages: user on the right, partner and AI on the left */
+.ac-messages{flex:1;min-height:0;overflow-y:auto;padding:22px 26px 18px;scrollbar-width:thin;scrollbar-color:#d4d9e6 transparent}
+.ac-note{margin:40px auto;color:#8a93a6;font-size:13px;text-align:center}
+.ac-day{display:flex;justify-content:center;margin:8px 0 16px}
+.ac-day span{padding:4px 13px;border-radius:999px;background:#f1f3f9;color:#7a8296;font-size:11.5px;font-weight:700}
+.ac-row{display:flex;align-items:flex-start;gap:10px;margin:0 0 12px}
+.ac-row.is-user{justify-content:flex-end}
+.ac-row.is-grouped{margin-top:-7px}
+.ac-bubble{max-width:min(76%,560px);padding:10px 15px 8px;border:1px solid #e3e8f2;border-radius:20px;background:#fff;font-size:14.5px;line-height:1.6}
+.ac-row.is-user .ac-bubble{border-color:#dfe5ff;background:#eef2ff}
+.ac-row.is-partner .ac-bubble{border-color:#d4efe1;background:#effaf4}
+.ac-row.is-ai .ac-bubble{border-color:#e8e3f5;background:#f8f6fe}
+.ac-name{display:block;margin-bottom:2px;color:#4b5468;font-size:12.5px;font-weight:800}
+.ac-bubble p{margin:0;color:#1f2430;white-space:pre-wrap;overflow-wrap:anywhere}
+.ac-bubble time{display:block;margin-top:4px;color:#8a93a6;font-size:11px}
+.ac-row.is-user .ac-bubble time{text-align:right}
+
+.ac-empty{display:grid;justify-items:center;gap:8px;padding:56px 20px;border:1px dashed #d8deec;border-radius:22px;background:#fff;text-align:center}
+.ac-empty-icon{display:grid;place-items:center;width:64px;height:64px;border-radius:20px;background:#eef2ff;color:#4f46e5}
+.ac-empty h3{margin:6px 0 0;font-size:18px;font-weight:800}
+
+/* Phone: the list or the chat, one at a time */
+@media (max-width:1000px){.ac-shell{grid-template-columns:290px minmax(0,1fr)}}
+@media (max-width:860px){
+  .ac-shell{display:block;height:clamp(520px,calc(100dvh - 240px),900px)}
+  .ac-list,.ac-thread{height:100%}
+  .ac-thread{display:none}
+  .ac-shell.is-thread-open .ac-list{display:none}
+  .ac-shell.is-thread-open .ac-thread{display:flex}
+  .ac-back{display:inline-flex}
+  .ac-thread-head{padding:12px 14px}
+  .ac-messages{padding:16px 12px 10px}
+  .ac-bubble{max-width:86%}
+}
+@media (prefers-reduced-motion:reduce){.ac-item{transition:none}}
+
+/* ---------- Heading and finishing touches ---------- */
+.ac-heading{display:flex!important;align-items:center;gap:14px;margin:6px 0 18px}
+.ac-heading h2{margin:0;font-size:24px;font-weight:800;letter-spacing:-.02em;color:#141a2b}
+.ac-heading-icon{display:grid;place-items:center;flex:0 0 auto;width:46px;height:46px;border-radius:15px;background:linear-gradient(145deg,#6d63f5,#4338ca);color:#fff;box-shadow:0 10px 22px rgba(79,70,229,.30),inset 0 1px 0 rgba(255,255,255,.35)}
+.ac-heading-count{margin-left:auto;padding:6px 14px;border:1px solid #dfe5ff;border-radius:999px;background:#eef2ff;color:#4338ca;font-size:12.5px;font-weight:800}
+
+.ac-shell{border-radius:26px;box-shadow:0 2px 6px rgba(15,23,42,.04),0 28px 64px rgba(30,41,90,.10)}
+.ac-list{background:linear-gradient(180deg,#fbfbff,#f4f6fd)}
+.ac-list-scroll{padding:12px}
+.ac-item{position:relative;padding:13px 13px 13px 15px;border-radius:18px}
+.ac-item.is-active::before{content:"";position:absolute;left:0;top:14px;bottom:14px;width:3px;border-radius:0 3px 3px 0;background:linear-gradient(180deg,#6d63f5,#4338ca)}
+.ac-pair{position:relative;flex:0 0 auto;width:46px;height:42px}
+.ac-pair .ac-avatar{position:absolute;width:30px;height:30px;border-radius:11px;font-size:12.5px;border:2px solid #fff;box-shadow:0 2px 6px rgba(15,23,42,.08)}
+.ac-pair .ac-avatar.is-user{left:0;top:0;z-index:1}
+.ac-pair .ac-avatar.is-partner{right:0;bottom:0}
+.ac-thread{background:radial-gradient(520px 280px at 90% 0%,rgba(109,99,245,.07),transparent 70%),radial-gradient(420px 260px at 0% 100%,rgba(34,160,115,.05),transparent 70%),#fff}
+.ac-thread-head{gap:14px;padding:14px 26px;background:rgba(255,255,255,.88);backdrop-filter:blur(10px)}
+.ac-thread-head h3{font-size:17px}
+.ac-bubble{box-shadow:0 1px 2px rgba(15,23,42,.05)}
+.ac-row{animation:acRise .28s cubic-bezier(.22,.8,.3,1) both}
+@keyframes acRise{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:none}}
+@media (max-width:860px){.ac-heading h2{font-size:20px}.ac-heading-icon{width:40px;height:40px;border-radius:13px}.ac-thread-head{padding:10px 14px}}
+@media (prefers-reduced-motion:reduce){.ac-row{animation:none}}
+.ac-heading h2,.ac-heading-count{white-space:nowrap}
+@media (max-width:480px){.ac-heading{gap:10px}.ac-heading h2{font-size:18px}.ac-heading-icon{width:38px;height:38px;border-radius:12px}.ac-heading-count{padding:5px 10px;font-size:11.5px}}

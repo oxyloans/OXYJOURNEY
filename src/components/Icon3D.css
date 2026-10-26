@@ -1,0 +1,10 @@
+/* 3D icon: stacked layers swung in space, with a floor shadow */
+.i3d{position:relative;display:block;transform-style:preserve-3d;animation:i3dSwing 5.5s ease-in-out infinite}
+.i3d::after{content:"";position:absolute;left:50%;bottom:-18px;width:80%;height:9px;margin-left:-40%;border-radius:50%;background:rgba(30,20,70,.22);filter:blur(5px);transform:translateZ(-12px);animation:i3dFloor 5.5s ease-in-out infinite}
+.i3d-layer{position:absolute;inset:0;width:100%;height:100%;overflow:visible;stroke:currentColor}
+.i3d-violet .zn9{color:#2a1c63}.i3d-violet .zn6{color:#352578}.i3d-violet .zn3{color:#43318f}.i3d-violet .zp0{color:#5340a8}.i3d-violet .zp3{color:#6b55cf}.i3d-violet .zp6{color:#8b78ec}.i3d-violet .zp9{color:#b5a6ff}
+.i3d-green .zn9{color:#0a3a2a}.i3d-green .zn6{color:#0f4d38}.i3d-green .zn3{color:#146448}.i3d-green .zp0{color:#1a7d5a}.i3d-green .zp3{color:#22a073}.i3d-green .zp6{color:#3ec78f}.i3d-green .zp9{color:#8ae8bf}
+.i3d-blue .zn9{color:#0b2a63}.i3d-blue .zn6{color:#103a85}.i3d-blue .zn3{color:#1a4fb0}.i3d-blue .zp0{color:#155eef}.i3d-blue .zp3{color:#3b7bf5}.i3d-blue .zp6{color:#6fa0fa}.i3d-blue .zp9{color:#b4cffd}
+@keyframes i3dSwing{0%,100%{transform:rotateX(12deg) rotateY(-26deg) translateY(0)}50%{transform:rotateX(-8deg) rotateY(26deg) translateY(-6px)}}
+@keyframes i3dFloor{0%,100%{transform:translateZ(-12px) scale(1);opacity:.9}50%{transform:translateZ(-12px) scale(.78);opacity:.55}}
+@media (prefers-reduced-motion:reduce){.i3d,.i3d::after{animation:none}.i3d{transform:rotateX(8deg) rotateY(-14deg)}}
