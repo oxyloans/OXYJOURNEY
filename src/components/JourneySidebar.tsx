@@ -762,10 +762,10 @@ export default function JourneySidebar({
       </div>
 
       <div className="oxj-sidebar-footer">
-        <a href="/oxy-journey/partner/chats" className="oxj-partner-chats-link">
+        {/* <a href="/oxy-journey/partner/chats" className="oxj-partner-chats-link">
           <span>Partner chats</span>
           <span aria-hidden="true">↗</span>
-        </a>
+        </a> */}
 
         <div
           ref={profileWrapperRef}

@@ -103,7 +103,7 @@ async function parseJson<T>(response: Response): Promise<T> {
 async function apiFetch<T>(
   path: string,
   init: RequestInit = {},
-  root: string = API_ROOT
+  root: string = API_CONFIG.root
 ): Promise<T> {
   const response = await fetch(`${root}${path}`, {
     ...init,

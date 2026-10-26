@@ -56,7 +56,7 @@ export default function MobileJourneyHeader({
           </button>
         )}
 
-        <a
+        {/* <a
           href="/oxy-journey/partner/chats"
           className="oxj-mobile-action-btn oxj-mobile-partner-btn"
           aria-label="Partner chats"
@@ -74,7 +74,7 @@ export default function MobileJourneyHeader({
             <path d="M21 11a8 8 0 0 1-8 8H7l-4 3V7a5 5 0 0 1 5-5h5a8 8 0 0 1 8 9Z" />
           </svg>
           <span className="oxj-mobile-btn-text">Partners</span>
-        </a>
+        </a> */}
       </div>
     </header>
   );
