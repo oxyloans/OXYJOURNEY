@@ -1,8 +1,10 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import {
   getPartnerUsers,
   getPartnerUsersByMobile,
   getDirectChat,
+  sendDirectChatMessage,
+  STREAM_API_ROOT,
   type PartnerUserSummary,
   type DirectChatMessage,
 } from "../services/vibeCodeApi";
@@ -40,43 +42,92 @@ function statusClass(status: string | null): string {
 
 type ChatPanelProps = { sessionId: string; userName: string | null };
 
+const messageTime = (raw: unknown): number => {
+  if (Array.isArray(raw)) return new Date(Number(raw[0]), Number(raw[1]) - 1, Number(raw[2]), Number(raw[3] || 0), Number(raw[4] || 0), Number(raw[5] || 0)).getTime() || 0;
+  return raw ? Date.parse(String(raw)) || 0 : 0;
+};
+const clock = (raw: unknown) => {
+  const t = messageTime(raw);
+  return t ? new Date(t).toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" }) : "";
+};
+const messageKey = (m: DirectChatMessage) => String(m.id ?? `${m.senderType}-${m.createdAt}-${m.message}`);
+const byTime = (a: DirectChatMessage, b: DirectChatMessage) => messageTime(a.createdAt) - messageTime(b.createdAt);
+
 function ChatPanel({ sessionId, userName }: ChatPanelProps) {
   const [messages, setMessages] = useState<DirectChatMessage[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [live, setLive] = useState(false);
+  const [draft, setDraft] = useState("");
+  const [sending, setSending] = useState(false);
+  const [sendError, setSendError] = useState("");
+  const endRef = useRef<HTMLDivElement>(null);
+
+  const addMessages = (incoming: DirectChatMessage[]) =>
+    setMessages(prev => {
+      const map = new Map(prev.map(m => [messageKey(m), m]));
+      for (const m of incoming) map.set(messageKey(m), m);
+      return [...map.values()].sort(byTime);
+    });
 
   useEffect(() => {
     let active = true;
     setLoading(true);
     setError("");
-    getDirectChat(sessionId)
-      .then((items: DirectChatMessage[]) => {
-        if (!active) return;
-        const sorted = [...items].sort((a, b) => {
-          const at = a.createdAt ? Date.parse(a.createdAt) : 0;
-          const bt = b.createdAt ? Date.parse(b.createdAt) : 0;
-          return at - bt;
-        });
-        setMessages(sorted);
-      })
-      .catch((err: unknown) => {
-        if (!active) return;
-        setError(err instanceof Error ? err.message : "Could not load chat history.");
-      })
+    setMessages([]);
+    const load = () => getDirectChat(sessionId)
+      .then((items: DirectChatMessage[]) => { if (active) { setError(""); addMessages(items); } })
+      .catch((err: unknown) => { if (active) setError(err instanceof Error ? err.message : "Could not load chat history."); })
       .finally(() => { if (active) setLoading(false); });
-    return () => { active = false; };
+    void load();
+
+    // New messages appear the moment they are sent (Server-Sent Events); reload after any reconnect.
+    let source: EventSource | null = null;
+    if (typeof EventSource !== "undefined") {
+      source = new EventSource(`${STREAM_API_ROOT}/ai-service/vibe-code/${encodeURIComponent(sessionId)}/stream`);
+      source.addEventListener("connected", () => { if (active) { setLive(true); void load(); } });
+      source.addEventListener("message", event => {
+        try { if (active) addMessages([JSON.parse((event as MessageEvent).data)]); } catch { /* ignore */ }
+      });
+      source.onerror = () => { if (active) setLive(false); };
+    }
+    return () => { active = false; source?.close(); };
   }, [sessionId]);
+
+  useEffect(() => { endRef.current?.scrollIntoView({ behavior: "smooth", block: "end" }); }, [messages.length]);
+
+  async function send(e: FormEvent) {
+    e.preventDefault();
+    const text = draft.trim();
+    if (!text || sending) return;
+    setSending(true); setSendError("");
+    try {
+      const saved = await sendDirectChatMessage(sessionId, {
+        message: text,
+        senderName: (localStorage.getItem("userName") || "").trim() || messages.find(m => !/^(USER|CUSTOMER)$/i.test(m.senderType || ""))?.senderName || "Partner",
+        senderType: "PARTNER",
+      });
+      setDraft("");
+      if (saved) addMessages([saved]);
+    } catch (err) {
+      setSendError(err instanceof Error ? err.message : "Could not send. Try again.");
+    } finally { setSending(false); }
+  }
 
   return (
     <div className="pud-chat">
       <div className="pud-chat-heading">
-        <h3>Chat with {userName || "User"}</h3>
-        <span className="pud-chat-sub">Direct conversation after matching</span>
+        <span className="pud-avatar">{(userName || "U").trim().charAt(0).toUpperCase()}</span>
+        <div className="pud-chat-title">
+          <h3>Chat with {userName || "User"}</h3>
+          <span className="pud-chat-sub">Direct conversation after matching</span>
+        </div>
+        <span className={`pud-live-pill ${live ? "is-on" : ""}`}><i />{live ? "Live" : "Connecting…"}</span>
       </div>
       {loading && <div className="pud-chat-loading">Loading messages…</div>}
       {error && <div className="pud-chat-error">{error}</div>}
       {!loading && !error && messages.length === 0 && (
-        <div className="pud-chat-empty">No messages yet. Start a conversation using the chat link.</div>
+        <div className="pud-chat-empty">No messages yet. Say hello below — it reaches {userName || "the user"} instantly.</div>
       )}
       {!loading && messages.length > 0 && (
         <div className="pud-messages">
@@ -86,14 +137,27 @@ function ChatPanel({ sessionId, userName }: ChatPanelProps) {
             const role = isUser ? "user" : "partner";
             const label = isUser ? (userName || "User") : (msg.senderName || "Partner");
             return (
-              <div key={String(msg.id ?? msg.createdAt)} className={`pud-msg pud-msg--${role}`}>
+              <div key={messageKey(msg)} className={`pud-msg pud-msg--${role}`}>
                 <span className="pud-msg-label">{label}</span>
                 <p className="pud-msg-text">{msg.message}</p>
+                <time className="pud-msg-time">{clock(msg.createdAt)}</time>
               </div>
             );
           })}
+          <div ref={endRef} />
         </div>
       )}
+      <form className="pud-composer" onSubmit={send}>
+        <input
+          value={draft}
+          onChange={e => setDraft(e.target.value)}
+          placeholder={`Reply to ${userName || "user"}…`}
+          maxLength={4000}
+          aria-label="Write a reply"
+        />
+        <button type="submit" disabled={sending || !draft.trim()}>{sending ? "Sending…" : "Send"}</button>
+      </form>
+      {sendError && <div className="pud-send-error" role="alert">{sendError}</div>}
     </div>
   );
 }
@@ -246,8 +310,8 @@ export default function PartnerUsersDashboard() {
             <>
               <div className="pud-detail-tools">
                 <button className="pud-back" onClick={() => setSelected(null)}>← Users</button>
-                <a href={`/oxy-journey/chat/${encodeURIComponent(selected.sessionId)}`}>
-                  Open live chat ↗
+                <a className="pud-live-btn" href={`/oxy-journey/chat/${encodeURIComponent(selected.sessionId)}/partner`}>
+                  <span className="pud-live-dot" /> Open live chat <span aria-hidden="true">↗</span>
                 </a>
               </div>
               <ChatPanel

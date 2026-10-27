@@ -472,7 +472,7 @@ function App() {
   if (/^\/(?:oxy-journey\/)?admin(?:\/.*)?$/.test(path)) return <AdminDashboard />;
   if (/^\/oxy-journey\/partner\/chats\/?$/.test(path)) return <PartnerChatsDashboard />;
   if (/^\/oxy-journey\/partner\/users\/?$/.test(path)) return <PartnerUsersDashboard />;
-  const match = /^\/oxy-journey\/chat\/([^/]+)\/?$/.exec(path);
+  const match = /^\/oxy-journey\/chat\/([^/]+?)(?:\/(?:user|partner))?\/?$/.exec(path);
   if (match) {
     let sessionId = "";
     try { sessionId = decodeURIComponent(match[1]); } catch { /* invalid URL */ }

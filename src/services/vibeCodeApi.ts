@@ -368,3 +368,33 @@ export async function getPartnerChatHistoryByMobile(
     STREAM_API_ROOT
   );
 }
+
+export type UserSessionSummary = {
+  sessionId: string;
+  journeyCategoryValue: string | null;
+  leadStatus: string | null;
+  matchedPersonName: string | null;
+  createdAt: string | null;
+  updatedAt: string | null;
+};
+
+/** Every journey session of a user; those with a matchedPersonName have a chat with a partner. */
+export async function getUserSessions(userId: string): Promise<UserSessionSummary[]> {
+  return apiFetch<UserSessionSummary[]>(
+    `/ai-service/vibe-code/user/${encodeURIComponent(userId)}/sessions`,
+    { method: "GET" },
+    STREAM_API_ROOT
+  );
+}
+
+/** Posts a message into the shared journey chat (the sender type decides which side it shows on). */
+export async function sendDirectChatMessage(
+  sessionId: string,
+  body: { message: string; senderName: string; senderType: "USER" | "PARTNER" }
+): Promise<DirectChatMessage | null> {
+  return apiFetch<DirectChatMessage>(
+    `/ai-service/vibe-code/${encodeURIComponent(sessionId)}/message`,
+    { method: "POST", body: JSON.stringify(body) },
+    STREAM_API_ROOT
+  );
+}

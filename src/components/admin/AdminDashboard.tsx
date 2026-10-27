@@ -1,4 +1,5 @@
 import { useEffect, useState, useMemo, useRef } from "react";
+import { API_CONFIG } from "../../config";
 import {
   fetchLiveSessions,
   fetchCompletedSessions,
@@ -6,6 +7,7 @@ import {
   fetchAllAdminMessages,
   formatAdminDate,
   formatAdminTimeAgo,
+  getAdminDateTimestamp,
   getAdminSession,
   adminLogout,
   type AdminSession,
@@ -17,7 +19,6 @@ import AdminLogin from "./AdminLogin";
 import {
   CheckCircle2,
   Clock,
-  ExternalLink,
   Filter,
   Layers,
   LogOut,
@@ -107,8 +108,21 @@ function AdminDashboardMain({ onLogout }: { onLogout: () => void }) {
       void loadData(true);
     }, 30000);
 
+    // Refresh as soon as any chat gets a new message (Server-Sent Events); the 30s poll stays as a fallback.
+    let live: EventSource | null = null;
+    let pending: number | undefined;
+    if (typeof EventSource !== "undefined") {
+      live = new EventSource(`${API_CONFIG.admin}/ai-service/vibe-code/admin/stream`);
+      live.addEventListener("message", () => {
+        window.clearTimeout(pending);
+        pending = window.setTimeout(() => void loadData(true), 500);
+      });
+    }
+
     return () => {
       clearInterval(interval);
+      window.clearTimeout(pending);
+      live?.close();
       abortControllerRef.current?.abort();
     };
   }, []);
@@ -185,7 +199,7 @@ function AdminDashboardMain({ onLogout }: { onLogout: () => void }) {
       }
 
       return true;
-    });
+    }).sort((a, b) => getAdminDateTimestamp(b.updatedAt || b.createdAt) - getAdminDateTimestamp(a.updatedAt || a.createdAt)); // newest first
   }, [activeTab, liveSessions, completedSessions, allSessions, searchQuery, categoryFilter, leadStatusFilter]);
 
   // Filtered messages
@@ -206,7 +220,7 @@ function AdminDashboardMain({ onLogout }: { onLogout: () => void }) {
         }
       }
       return true;
-    });
+    }).sort((a, b) => getAdminDateTimestamp(b.createdAt as any) - getAdminDateTimestamp(a.createdAt as any)); // newest first
   }, [messages, filterSessionId, senderFilter, searchQuery]);
 
   const conversationCount = useMemo(
@@ -737,30 +751,6 @@ function AdminDashboardMain({ onLogout }: { onLogout: () => void }) {
                       </div>
 
                       <div className="ad-card-actions">
-                        {s.chatWindowUrl ? (
-                          <a
-                            href={s.chatWindowUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="ad-action-btn is-primary"
-                            title="Open Chat in new window"
-                          >
-                            <ExternalLink size={13} />
-                            <span>Chat</span>
-                          </a>
-                        ) : (
-                          <a
-                            href={`https://www.oxyjourneys.com/oxy-journey/chat/${encodeURIComponent(s.sessionId)}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="ad-action-btn is-primary"
-                            title="Open Chat in new window"
-                          >
-                            <ExternalLink size={13} />
-                            <span>Chat</span>
-                          </a>
-                        )}
-
                         <button
                           type="button"
                           className="ad-action-btn is-secondary"
@@ -768,7 +758,7 @@ function AdminDashboardMain({ onLogout }: { onLogout: () => void }) {
                           title="View chat messages for this session"
                         >
                           <MessageSquare size={13} />
-                          <span>Logs</span>
+                          <span>View Conversation</span>
                         </button>
                       </div>
                     </div>
@@ -854,29 +844,6 @@ function AdminDashboardMain({ onLogout }: { onLogout: () => void }) {
 
                           <td className="ad-td-actions">
                             <div className="ad-table-actions-row">
-                              {s.chatWindowUrl ? (
-                                <a
-                                  href={s.chatWindowUrl}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="ad-action-btn is-primary"
-                                  title="Open Chat"
-                                >
-                                  <ExternalLink size={12} />
-                                  <span>Chat</span>
-                                </a>
-                              ) : (
-                                <a
-                                  href={`https://www.oxyjourneys.com/oxy-journey/chat/${encodeURIComponent(s.sessionId)}`}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="ad-action-btn is-primary"
-                                  title="Open Chat"
-                                >
-                                  <ExternalLink size={12} />
-                                  <span>Chat</span>
-                                </a>
-                              )}
                               <button
                                 type="button"
                                 className="ad-action-btn is-secondary"
@@ -884,7 +851,7 @@ function AdminDashboardMain({ onLogout }: { onLogout: () => void }) {
                                 title="Messages for this session"
                               >
                                 <MessageSquare size={12} />
-                                <span>Logs</span>
+                                <span>View Conversation</span>
                               </button>
                             </div>
                           </td>

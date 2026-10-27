@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import Icon3D from "./Icon3D";
 import JourneyLoginModal from "./JourneyLoginModal";
-import { getChatToken, getSharedSession, getSharedMessages, postSharedMessage, SessionChatError, type SharedMessage, type SharedSession } from "../services/sessionChatApi";
+import { isAdminView, getChatToken, getSharedSession, getSharedMessages, postSharedMessage, subscribeSharedMessages, SessionChatError, type SharedMessage, type SharedSession } from "../services/sessionChatApi";
 import { LOGO } from "../data/journeyData";
 import "./SessionChatPage.css";
 
@@ -22,7 +22,7 @@ const timeLabel = (iso: string) => new Date(iso).toLocaleTimeString(undefined, {
 
 export default function SessionChatPage({ sessionId, embedded = false }: { sessionId: string; embedded?: boolean }) {
   const valid = /^[A-Za-z0-9_-]{1,128}$/.test(sessionId);
-  const [authenticated, setAuthenticated] = useState(Boolean(getChatToken()));
+  const [authenticated, setAuthenticated] = useState(true) // no login needed to open a shared chat link;
   const [loginOpen, setLoginOpen] = useState(false);
   const [session, setSession] = useState<SharedSession | null>(null);
   const [messages, setMessages] = useState<LocalMessage[]>([]);
@@ -80,11 +80,16 @@ export default function SessionChatPage({ sessionId, embedded = false }: { sessi
     const onOnline = () => { setOnline(true); void sync(); };
     const onOffline = () => setOnline(false);
     const onVisible = () => { if (!document.hidden) void sync(); };
-    const timer = window.setInterval(() => void sync(), 3000);
+    // Messages arrive instantly over a live stream; the slow poll is only a safety net.
+    const unsubscribe = subscribeSharedMessages(sessionId, {
+      onMessage: message => { if (active) { setMessages(prev => combine(prev, [message])); setLastSync(new Date().toISOString()); setError(""); } },
+      onOpen: () => void sync(),
+    });
+    const timer = window.setInterval(() => void sync(), 30000);
     window.addEventListener("online", onOnline); window.addEventListener("offline", onOffline);
     document.addEventListener("visibilitychange", onVisible);
     void sync();
-    return () => { active = false; controller.abort(); clearInterval(timer); refresh.current = () => {}; window.removeEventListener("online", onOnline); window.removeEventListener("offline", onOffline); document.removeEventListener("visibilitychange", onVisible); };
+    return () => { active = false; controller.abort(); unsubscribe(); clearInterval(timer); refresh.current = () => {}; window.removeEventListener("online", onOnline); window.removeEventListener("offline", onOffline); document.removeEventListener("visibilitychange", onVisible); };
   }, [sessionId, valid, authenticated]);
 
   useEffect(() => {
@@ -114,23 +119,25 @@ export default function SessionChatPage({ sessionId, embedded = false }: { sessi
     } finally { sendLock.current = false; if (mounted.current) setSending(false); }
   }
   async function copyLink() {
-    const url = `${window.location.origin}/oxy-journey/chat/${encodeURIComponent(sessionId)}`;
+    // Share the other side's link: the partner copies the user's link and the user copies the partner's.
+    const side = me?.role === "USER" ? "partner" : "user";
+    const url = `${window.location.origin}/oxy-journey/chat/${encodeURIComponent(sessionId)}/${side}`;
     try { await navigator.clipboard.writeText(url); setNotice("Conversation link copied"); }
     catch { setNotice("Copy the conversation link from your browser address bar."); }
   }
   const me = session?.participants.find(p => p.userId === session.currentUserId);
   const other = session?.participants.find(p => p.userId !== session.currentUserId);
-  const canSend = Boolean(session && online && authenticated && !blocked);
+  const adminView = isAdminView();
+  const canSend = Boolean(session && online && authenticated && !blocked && !adminView);
   const status = !online ? "You are offline" : loading ? "Connecting…" : blocked ? "Conversation unavailable" : error ? "Waiting to reconnect" : lastSync ? "Conversation connected" : "Sign in to connect";
 
   const connected = Boolean(lastSync && online && !blocked && !error);
-  const youName = me ? (me.role === "PARTNER" ? "Journey partner" : "Journey user") : "";
+  const youName = adminView ? "Admin (read-only)" : me ? (me.role === "PARTNER" ? "Journey partner" : "Journey user") : "";
 
   return <div className={`oj-chat-page sc-page ${embedded ? "oj-chat-embedded" : ""}`}>
     <header className="oj-chat-brand sc-top">
       <a href="/" className="oj-chat-logo"><img src={LOGO} alt="OXY Journeys" /></a>
       <span className="oj-chat-tagline">Every journey, one partner</span>
-      <a href="/oxy-journey/partner/chats" className="oj-chat-home"><Icon name="arrow" /> <span>All chats</span></a>
     </header>
 
     <main className="oj-chat-shell sc-shell">
@@ -209,10 +216,10 @@ export default function SessionChatPage({ sessionId, embedded = false }: { sessi
         <footer className="oj-chat-composer sc-composer">
           <form onSubmit={e => { e.preventDefault(); void send(); }}>
             <label className="oj-chat-sr-only" htmlFor="journey-message">Message your journey partner</label>
-            <textarea ref={textarea} id="journey-message" placeholder={canSend ? "Write a message…" : "Sign in and connect to start chatting"} value={draft} onChange={e => setDraft(e.target.value)} maxLength={4000} rows={1} disabled={!canSend} onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing && !window.matchMedia("(max-width: 640px)").matches) { e.preventDefault(); void send(); } }} />
+            <textarea ref={textarea} id="journey-message" placeholder={adminView ? "Admin view is read-only" : canSend ? "Write a message…" : "Sign in and connect to start chatting"} value={draft} onChange={e => setDraft(e.target.value)} maxLength={4000} rows={1} disabled={!canSend} onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing && !window.matchMedia("(max-width: 640px)").matches) { e.preventDefault(); void send(); } }} />
             <button type="submit" className="oj-chat-send sc-send" disabled={!canSend || sending || !draft.trim()} aria-label="Send message"><Icon name="send" /></button>
           </form>
-          <div className="oj-chat-composer-caption"><span>{me ? `Chatting as ${youName}` : "Sign in to start your conversation"}</span>{draft.length > 3500 ? <span>{4000 - draft.length} characters left</span> : <span>Enter to send · Shift+Enter for a new line</span>}</div>
+          <div className="oj-chat-composer-caption"><span>{adminView ? "Viewing as Admin (read-only)" : me ? `Chatting as ${youName}` : "Sign in to start your conversation"}</span>{draft.length > 3500 ? <span>{4000 - draft.length} characters left</span> : <span>Enter to send · Shift+Enter for a new line</span>}</div>
         </footer>
       </section>
     </main>

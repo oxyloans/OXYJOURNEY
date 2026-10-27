@@ -18,17 +18,14 @@ import type {
   LifeStage,
   Platform,
 } from "../types/journey";
-import ChatBox, {
-  type ChatBoxAdapter,
-  type ChatBoxConversation,
-  type ChatBoxMessage,
-} from "./ChatBox";
+import ChatBox, { type ChatBoxAdapter, type ChatBoxConversation, type ChatBoxMessage } from "./ChatBox";
 import JourneySidebar from "./JourneySidebar";
 import MobileJourneyHeader from "./MobileJourneyHeader";
 import JourneyLoginModal from "./JourneyLoginModal";
 import { markSessionOwner } from "../services/sessionChatApi";
 import {
   getVibeCodeHistory,
+  getUserSessions,
   historyToChatMessages,
   getJourneyIdentity,
   STREAM_API_ROOT,
@@ -38,7 +35,7 @@ import "./OxyJourneys.css";
 
 function createMessage(
   role: ChatMessage["role"],
-  content: string,
+  content: string
 ): ChatMessage {
   return {
     id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
@@ -59,93 +56,34 @@ function uniqueByTitle(journeys: JourneyOption[]) {
 }
 
 const NAME_STOP_WORDS = new Set([
-  "yes",
-  "no",
-  "ok",
-  "okay",
-  "hi",
-  "hello",
-  "hey",
-  "i",
-  "my",
-  "me",
-  "need",
-  "want",
-  "looking",
-  "loan",
-  "home",
-  "car",
-  "personal",
-  "business",
-  "gold",
-  "study",
-  "abroad",
-  "lakhs",
-  "lakh",
-  "crore",
-  "month",
-  "months",
-  "year",
-  "years",
-  "please",
-  "thanks",
-  "thank",
-  "sure",
-  "none",
-  "na",
-  "and",
-  "for",
-  "the",
-  "a",
-  "an",
+  "yes", "no", "ok", "okay", "hi", "hello", "hey", "i", "my", "me", "need", "want", "looking", "loan", "home",
+  "car", "personal", "business", "gold", "study", "abroad", "lakhs", "lakh", "crore", "month", "months", "year",
+  "years", "please", "thanks", "thank", "sure", "none", "na", "and", "for", "the", "a", "an",
 ]);
 
 // Pulls a first name out of an answer to "May I know your name?", e.g.
 // "Rishi and looking for cse" -> "Rishi", "my name is rishi kumar" -> "Rishi Kumar".
 function extractName(text: string): string {
   let t = text.trim().replace(/^(hi|hello|hey)[,!\s]+/i, "");
-  const intro =
-    /(?:my name is|name is|i am|i'm|im|this is|it's|call me)\s+(.+)/i.exec(t);
+  const intro = /(?:my name is|name is|i am|i'm|im|this is|it's|call me)\s+(.+)/i.exec(t);
   if (intro) t = intro[1];
-  const lead = t
-    .split(/\s+(?:and|&|looking|need|want|from|in|for)\b|[,.\-–—:;!?\n]/i)[0]
-    .trim();
+  const lead = t.split(/\s+(?:and|&|looking|need|want|from|in|for)\b|[,.\-–—:;!?\n]/i)[0].trim();
   const words = lead.split(/\s+/).filter(Boolean);
   if (words.length < 1 || words.length > 3) return "";
-  if (
-    !words.every(
-      (word) =>
-        /^[A-Za-z][A-Za-z.'-]{1,19}$/.test(word) &&
-        !NAME_STOP_WORDS.has(word.toLowerCase()),
-    )
-  )
-    return "";
-  return words
-    .map((word) => word[0].toUpperCase() + word.slice(1).toLowerCase())
-    .join(" ");
+  if (!words.every(word => /^[A-Za-z][A-Za-z.'-]{1,19}$/.test(word) && !NAME_STOP_WORDS.has(word.toLowerCase()))) return "";
+  return words.map(word => word[0].toUpperCase() + word.slice(1).toLowerCase()).join(" ");
 }
 
 const PENDING_NAME_KEY = "oxyJourneyPendingName";
 
-type SavedSession = {
-  id: string;
-  title: string;
-  updatedAt: number;
-  context?: ChatContext | null;
-};
+type SavedSession = { id: string; title: string; updatedAt: number; context?: ChatContext | null };
 
 // Sessions live on one backend, so the list is kept per backend. It is keyed by the user's mobile
 // number, which stays the same every time they log in, so logging out and back in brings the
 // same chats back. (The userId is only the fallback: it can differ between logins.)
 function savedSessionsKey() {
-  const mobile = (
-    localStorage.getItem("userMobile") ||
-    localStorage.getItem("whatsappNumber") ||
-    localStorage.getItem("mobileNumber") ||
-    ""
-  )
-    .replace(/\D/g, "")
-    .slice(-10);
+  const mobile = (localStorage.getItem("userMobile") || localStorage.getItem("whatsappNumber") || localStorage.getItem("mobileNumber") || "")
+    .replace(/\D/g, "").slice(-10);
   const userId = (localStorage.getItem("userId") || "").trim();
   const id = mobile || userId;
   return id ? `oxyJourneySessions:${STREAM_API_ROOT}:${id}` : "";
@@ -154,9 +92,7 @@ function savedSessionsKey() {
 function parseSessions(raw: string | null): SavedSession[] {
   try {
     const value = JSON.parse(raw || "[]");
-    return Array.isArray(value)
-      ? value.filter((item) => item?.id && item?.title)
-      : [];
+    return Array.isArray(value) ? value.filter(item => item?.id && item?.title) : [];
   } catch {
     return [];
   }
@@ -168,22 +104,16 @@ function readSavedSessions(): SavedSession[] {
   const merged = parseSessions(localStorage.getItem(key));
   // Fold in lists saved earlier under the userId key, then drop that key.
   const userId = (localStorage.getItem("userId") || "").trim();
-  const legacyKey = userId
-    ? `oxyJourneySessions:${STREAM_API_ROOT}:${userId}`
-    : "";
+  const legacyKey = userId ? `oxyJourneySessions:${STREAM_API_ROOT}:${userId}` : "";
   if (legacyKey && legacyKey !== key) {
     const legacy = parseSessions(localStorage.getItem(legacyKey));
     if (legacy.length) {
-      for (const item of legacy)
-        if (!merged.some((existing) => existing.id === item.id))
-          merged.push(item);
+      for (const item of legacy) if (!merged.some(existing => existing.id === item.id)) merged.push(item);
       merged.sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
       try {
         localStorage.setItem(key, JSON.stringify(merged));
         localStorage.removeItem(legacyKey);
-      } catch {
-        /* storage blocked */
-      }
+      } catch { /* storage blocked */ }
     }
   }
   return merged;
@@ -203,14 +133,11 @@ export default function OxyJourneysLanding({
 }: LandingProps) {
   const [mode, setMode] = useState<JourneyMode>(initialMode);
   const [stageId, setStageId] = useState(() => {
-    const savedStageId =
-      initialStageId ||
-      localStorage.getItem(VIBE_CODE_STORAGE.lifeStageId) ||
-      "";
+    const savedStageId = initialStageId || localStorage.getItem(VIBE_CODE_STORAGE.lifeStageId) || "";
     return getLifeStageById(savedStageId) ? savedStageId : LIFE_STAGES[0].id;
   });
   const [activePlatformId, setActivePlatformId] = useState(
-    initialPlatformId || "oxyloans",
+    initialPlatformId || "oxyloans"
   );
   const [activeJourneyId, setActiveJourneyId] = useState("");
   const [search, setSearch] = useState("");
@@ -223,64 +150,43 @@ export default function OxyJourneysLanding({
   const [chatContext, setChatContext] = useState<ChatContext | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [loading, setLoading] = useState(false);
-  const [sessionId, setSessionId] = useState<string>(
-    () => sessionStorage.getItem(VIBE_CODE_STORAGE.sessionId) || "",
+  const [sessionId, setSessionId] = useState<string>(() =>
+    sessionStorage.getItem(VIBE_CODE_STORAGE.sessionId) || ""
   );
   const [desktopSidebarExpanded, setDesktopSidebarExpanded] = useState(
-    initialSidebarExpanded,
+    initialSidebarExpanded
   );
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [loginOpen, setLoginOpen] = useState(false);
   const [logoutConfirmOpen, setLogoutConfirmOpen] = useState(false);
   // Past chats for the logged-in user, remembered per userId in this browser.
-  const [savedSessions, setSavedSessions] = useState<SavedSession[]>(() =>
-    readSavedSessions(),
-  );
+  const [savedSessions, setSavedSessions] = useState<SavedSession[]>(() => readSavedSessions());
   const [loggedIn, setLoggedIn] = useState(() => Boolean(getJourneyIdentity()));
-  const [displayName, setDisplayName] = useState(() =>
-    (localStorage.getItem("userName") || "").trim(),
-  );
+  const [displayName, setDisplayName] = useState(() => (localStorage.getItem("userName") || "").trim());
   const nameCheckedFor = useRef("");
-  const guestPromptCount = useRef(
-    Math.max(
-      0,
-      Number(sessionStorage.getItem(VIBE_CODE_STORAGE.guestPromptCount)) || 0,
-    ),
-  );
+  const guestPromptCount = useRef(Math.max(0, Number(sessionStorage.getItem(VIBE_CODE_STORAGE.guestPromptCount)) || 0));
   const pendingPrompt = useRef("");
   const pendingReplace = useRef(false);
-  const arrivedWithIntent = useRef(
-    Boolean(initialClassification || initialPrompt),
-  );
+  const arrivedWithIntent = useRef(Boolean(initialClassification || initialPrompt));
   const streamController = useRef<AbortController | null>(null);
-  const [resumeMessage, setResumeMessage] = useState<{
-    id: string;
-    text: string;
-    replaceLast?: boolean;
-  } | null>(null);
+  const [resumeMessage, setResumeMessage] = useState<{ id: string; text: string; replaceLast?: boolean } | null>(null);
   useEffect(() => () => streamController.current?.abort(), []);
-  const [activeConversationId, setActiveConversationId] =
-    useState("current-journey");
+  const [activeConversationId, setActiveConversationId] = useState("current-journey");
 
   const stage = useMemo(() => getLifeStageById(stageId), [stageId]);
   const platform = useMemo(
     () => getPlatformById(activePlatformId),
-    [activePlatformId],
+    [activePlatformId]
   );
 
   const activeProfession =
-    chatContext?.type === "classification" &&
-    chatContext.subtitle === "Profession"
+    chatContext?.type === "classification" && chatContext.subtitle === "Profession"
       ? chatContext.classificationValue || ""
       : "";
 
   const activeLabel =
     chatContext?.title ||
-    (mode === "life-cycle"
-      ? stage?.shortLabel
-      : mode === "profession"
-        ? "Professions"
-        : platform?.shortName) ||
+    (mode === "life-cycle" ? stage?.shortLabel : mode === "profession" ? "Professions" : platform?.shortName) ||
     "Let’s Start A Journey";
 
   useEffect(() => {
@@ -308,10 +214,8 @@ export default function OxyJourneysLanding({
         if (parsedContext) {
           parsedContext.assistantIntro = "";
           setChatContext(parsedContext);
-          if (parsedContext.type !== "classification")
-            setMode(parsedContext.type);
-          else if (parsedContext.subtitle === "Profession")
-            setMode("profession");
+          if (parsedContext.type !== "classification") setMode(parsedContext.type);
+          else if (parsedContext.subtitle === "Profession") setMode("profession");
           setStageId(parsedContext.stageId || "");
           setActivePlatformId(parsedContext.platformId || "askoxy-ai");
           setActiveJourneyId(parsedContext.journeyId || "");
@@ -331,28 +235,18 @@ export default function OxyJourneysLanding({
           setSessionId("");
         }
         if (!getJourneyIdentity()) {
-          guestPromptCount.current = Math.max(
-            guestPromptCount.current,
-            restored.filter((message) => message.role === "user").length,
-          );
-          sessionStorage.setItem(
-            VIBE_CODE_STORAGE.guestPromptCount,
-            String(guestPromptCount.current),
-          );
+          guestPromptCount.current = Math.max(guestPromptCount.current, restored.filter(message => message.role === "user").length);
+          sessionStorage.setItem(VIBE_CODE_STORAGE.guestPromptCount, String(guestPromptCount.current));
         }
         setMessages(
           restored.length > 0
             ? restored.filter(
                 (message) =>
                   !message.content.startsWith("You selected ") &&
-                  !message.content.includes(
-                    "Tell me what you want to do next",
-                  ) &&
-                  !message.content.includes(
-                    "Tell me what you need at this stage",
-                  ),
+                  !message.content.includes("Tell me what you want to do next") &&
+                  !message.content.includes("Tell me what you need at this stage")
               )
-            : [],
+            : []
         );
       } catch (error) {
         console.error("Unable to restore vibe-code chat history", error);
@@ -387,28 +281,20 @@ export default function OxyJourneysLanding({
     if (!initialClassification && !initialPrompt) return;
     if (initialClassification) {
       // A known profession opens as one: the sidebar shows it selected under PROFESSIONS.
-      const profession = TOP_CLASSIFICATIONS.find(
-        (item) => item.name === initialClassification,
-      );
+      const profession = TOP_CLASSIFICATIONS.find(item => item.name === initialClassification);
       if (profession) setMode("profession");
       const context: ChatContext = {
         type: "classification",
-        title: profession
-          ? classificationLabel(profession)
-          : initialClassification,
+        title: profession ? classificationLabel(profession) : initialClassification,
         subtitle: profession ? "Profession" : "Classification",
         assistantIntro: "",
         suggestions: [],
         classificationValue: initialClassification,
       };
       setChatContext(context);
-      sessionStorage.setItem(
-        VIBE_CODE_STORAGE.context,
-        JSON.stringify(context),
-      );
+      sessionStorage.setItem(VIBE_CODE_STORAGE.context, JSON.stringify(context));
     }
-    if (initialPrompt)
-      setResumeMessage({ id: crypto.randomUUID(), text: initialPrompt });
+    if (initialPrompt) setResumeMessage({ id: crypto.randomUUID(), text: initialPrompt });
     // Runs once on arrival.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -482,16 +368,10 @@ export default function OxyJourneysLanding({
   // Guests keep it until they log in; logged-in users save it straight away.
   useEffect(() => {
     let index = -1;
-    for (let i = messages.length - 1; i >= 0; i--)
-      if (messages[i].role === "user") {
-        index = i;
-        break;
-      }
+    for (let i = messages.length - 1; i >= 0; i--) if (messages[i].role === "user") { index = i; break; }
     if (index < 1) return;
-    const answer = messages[index],
-      question = messages[index - 1];
-    if (question.role !== "assistant" || !/your name/i.test(question.content))
-      return;
+    const answer = messages[index], question = messages[index - 1];
+    if (question.role !== "assistant" || !/your name/i.test(question.content)) return;
     if (nameCheckedFor.current === answer.id) return;
     nameCheckedFor.current = answer.id;
     const name = extractName(answer.content);
@@ -504,46 +384,49 @@ export default function OxyJourneysLanding({
     }
   }, [messages, loggedIn]);
 
-  const sidebarProfile = {
-    ...profile,
-    name: loggedIn ? displayName || undefined : undefined,
-  };
+  const sidebarProfile = { ...profile, name: loggedIn ? displayName || undefined : undefined };
 
-  const firstUserTitle =
-    messages
-      .find((message) => message.role === "user")
-      ?.content.trim()
-      .slice(0, 80) || "";
+  const firstUserTitle = messages.find(message => message.role === "user")?.content.trim().slice(0, 80) || "";
 
   useEffect(() => setSavedSessions(readSavedSessions()), [loggedIn]);
+
+  // The user's chats with journey partners (sessions that have a matched partner), newest first.
+  const [partnerChats, setPartnerChats] = useState<{ id: string; title: string; partnerName: string }[]>([]);
+  useEffect(() => {
+    const userId = (localStorage.getItem("userId") || "").trim();
+    if (!loggedIn || !userId) { setPartnerChats([]); return; }
+    let cancelled = false;
+    const load = () => getUserSessions(userId)
+      .then(list => {
+        if (cancelled) return;
+        setPartnerChats(list.filter(item => item.sessionId && item.matchedPersonName?.trim()).map(item => ({
+          id: item.sessionId,
+          title: item.journeyCategoryValue?.trim() || "Journey chat",
+          partnerName: item.matchedPersonName!.trim(),
+        })));
+      })
+      .catch(() => { /* keep the last list */ });
+    void load();
+    const onFocus = () => void load();
+    window.addEventListener("focus", onFocus);
+    return () => { cancelled = true; window.removeEventListener("focus", onFocus); };
+  }, [loggedIn, sessionId]);
 
   // Remember each chat of the logged-in user once it has a session and a first prompt.
   useEffect(() => {
     const key = savedSessionsKey();
     if (!loggedIn || !key || !sessionId || !firstUserTitle) return;
     const list = readSavedSessions();
-    if (list.some((item) => item.id === sessionId)) return;
-    const next = [
-      {
-        id: sessionId,
-        title: firstUserTitle,
-        updatedAt: Date.now(),
-        context: chatContext,
-      },
-      ...list,
-    ].slice(0, 50);
-    try {
-      localStorage.setItem(key, JSON.stringify(next));
-    } catch {
-      /* storage full or blocked */
-    }
+    if (list.some(item => item.id === sessionId)) return;
+    const next = [{ id: sessionId, title: firstUserTitle, updatedAt: Date.now(), context: chatContext }, ...list].slice(0, 50);
+    try { localStorage.setItem(key, JSON.stringify(next)); } catch { /* storage full or blocked */ }
     setSavedSessions(next);
   }, [loggedIn, sessionId, firstUserTitle, chatContext]);
 
   async function selectSession(targetId: string) {
     if (!targetId || targetId === sessionId || loading) return;
     streamController.current?.abort();
-    const saved = readSavedSessions().find((item) => item.id === targetId);
+    const saved = readSavedSessions().find(item => item.id === targetId);
     setLoading(true);
     try {
       const history = await getVibeCodeHistory(targetId);
@@ -551,16 +434,8 @@ export default function OxyJourneysLanding({
       if (restored.length === 0) {
         // The server has nothing for this chat: drop the dead entry instead of showing a blank chat.
         const key = savedSessionsKey();
-        const remaining = readSavedSessions().filter(
-          (item) => item.id !== targetId,
-        );
-        if (key) {
-          try {
-            localStorage.setItem(key, JSON.stringify(remaining));
-          } catch {
-            /* storage blocked */
-          }
-        }
+        const remaining = readSavedSessions().filter(item => item.id !== targetId);
+        if (key) { try { localStorage.setItem(key, JSON.stringify(remaining)); } catch { /* storage blocked */ } }
         setSavedSessions(remaining);
         return;
       }
@@ -575,10 +450,7 @@ export default function OxyJourneysLanding({
         setStageId(context.stageId || "");
         setActivePlatformId(context.platformId || "askoxy-ai");
         setActiveJourneyId(context.journeyId || "");
-        sessionStorage.setItem(
-          VIBE_CODE_STORAGE.context,
-          JSON.stringify(context),
-        );
+        sessionStorage.setItem(VIBE_CODE_STORAGE.context, JSON.stringify(context));
       } else {
         setActiveJourneyId("");
         sessionStorage.removeItem(VIBE_CODE_STORAGE.context);
@@ -591,8 +463,8 @@ export default function OxyJourneysLanding({
           (message) =>
             !message.content.startsWith("You selected ") &&
             !message.content.includes("Tell me what you want to do next") &&
-            !message.content.includes("Tell me what you need at this stage"),
-        ),
+            !message.content.includes("Tell me what you need at this stage")
+        )
       );
     } catch (error) {
       console.error("Unable to load chat history", error);
@@ -603,17 +475,7 @@ export default function OxyJourneysLanding({
 
   function handleLogout() {
     streamController.current?.abort();
-    for (const key of [
-      "accessToken",
-      "token",
-      "refreshToken",
-      "userId",
-      "userMobile",
-      "whatsappNumber",
-      "mobileNumber",
-      "primaryType",
-      "userName",
-    ]) {
+    for (const key of ["accessToken", "token", "refreshToken", "userId", "userMobile", "whatsappNumber", "mobileNumber", "primaryType", "userName"]) {
       localStorage.removeItem(key);
     }
     // Start a fresh anonymous journey so the next login re-links a clean session.
@@ -631,8 +493,7 @@ export default function OxyJourneysLanding({
     setSearch("");
 
     if (nextMode === "life-cycle") {
-      const savedStageId =
-        stageId || localStorage.getItem(VIBE_CODE_STORAGE.lifeStageId) || "";
+      const savedStageId = stageId || localStorage.getItem(VIBE_CODE_STORAGE.lifeStageId) || "";
       const defaultStage = getLifeStageById(savedStageId) || LIFE_STAGES[0];
       if (defaultStage) {
         handleStageSelect(defaultStage);
@@ -652,7 +513,7 @@ export default function OxyJourneysLanding({
 
   // Choosing a profession opens a fresh chat under that classification, like choosing a life stage.
   function handleProfessionSelect(name: string) {
-    const item = TOP_CLASSIFICATIONS.find((entry) => entry.name === name);
+    const item = TOP_CLASSIFICATIONS.find(entry => entry.name === name);
     if (!item) return;
     arrivedWithIntent.current = false;
     streamController.current?.abort();
@@ -673,10 +534,7 @@ export default function OxyJourneysLanding({
       classificationValue: item.name,
     };
     setChatContext(nextContext);
-    sessionStorage.setItem(
-      VIBE_CODE_STORAGE.context,
-      JSON.stringify(nextContext),
-    );
+    sessionStorage.setItem(VIBE_CODE_STORAGE.context, JSON.stringify(nextContext));
     setMessages([]);
     setMobileNavOpen(false);
   }
@@ -691,10 +549,7 @@ export default function OxyJourneysLanding({
     sessionStorage.removeItem(VIBE_CODE_STORAGE.sessionId);
 
     // Life journeys show all 4 suggested questions in the 2x2 grid.
-    const suggestions = (LIFE_STAGE_EXAMPLES[selectedStage.id] || []).slice(
-      0,
-      2,
-    );
+    const suggestions = (LIFE_STAGE_EXAMPLES[selectedStage.id] || []).slice(0, 2);
     const assistantIntro = "";
 
     setMode("life-cycle");
@@ -713,7 +568,7 @@ export default function OxyJourneysLanding({
     setChatContext(nextContext);
     sessionStorage.setItem(
       VIBE_CODE_STORAGE.context,
-      JSON.stringify(nextContext),
+      JSON.stringify(nextContext)
     );
     setMessages([]);
     setMobileNavOpen(false);
@@ -726,8 +581,7 @@ export default function OxyJourneysLanding({
     setActivePlatformId(platformId);
     streamController.current?.abort();
 
-    const selectedPlatform =
-      getPlatformById(platformId) || PLATFORMS.find((p) => p.id === platformId);
+    const selectedPlatform = getPlatformById(platformId) || PLATFORMS.find(p => p.id === platformId);
     let journeys = platformJourneys[platformId] || [];
 
     if ((!journeys || journeys.length === 0) && onLoadJourneys) {
@@ -735,7 +589,7 @@ export default function OxyJourneysLanding({
         const loaded = await onLoadJourneys({ mode: "platform", platformId });
         if (loaded && loaded.length > 0) {
           journeys = uniqueByTitle(loaded);
-          setPlatformJourneys((prev) => ({ ...prev, [platformId]: journeys }));
+          setPlatformJourneys(prev => ({ ...prev, [platformId]: journeys }));
         }
       } catch {
         // ignore
@@ -757,8 +611,7 @@ export default function OxyJourneysLanding({
     // to the default life stage. A user action (new chat, picking a stage) turns this off.
     if (arrivedWithIntent.current) return;
     if (mode === "life-cycle" && !chatContext && !sessionId && !loading) {
-      const savedStageId =
-        stageId || localStorage.getItem(VIBE_CODE_STORAGE.lifeStageId) || "";
+      const savedStageId = stageId || localStorage.getItem(VIBE_CODE_STORAGE.lifeStageId) || "";
       const defaultStage = getLifeStageById(savedStageId) || LIFE_STAGES[0];
       if (defaultStage) {
         handleStageSelect(defaultStage);
@@ -769,25 +622,17 @@ export default function OxyJourneysLanding({
   useEffect(() => {
     if (mode === "platform" && !activeJourneyId && !sessionId && !loading) {
       const targetPlatformId = activePlatformId || "oxyloans";
-      const selectedPlatform =
-        getPlatformById(targetPlatformId) || PLATFORMS[0];
+      const selectedPlatform = getPlatformById(targetPlatformId) || PLATFORMS[0];
       const journeys = platformJourneys[selectedPlatform.id];
       if (selectedPlatform && journeys && journeys.length > 0) {
         startPlatformJourney(selectedPlatform, journeys[0]);
       }
     }
-  }, [
-    mode,
-    activePlatformId,
-    activeJourneyId,
-    sessionId,
-    loading,
-    platformJourneys,
-  ]);
+  }, [mode, activePlatformId, activeJourneyId, sessionId, loading, platformJourneys]);
 
   function startPlatformJourney(
     selectedPlatform: Platform,
-    journey: JourneyOption,
+    journey: JourneyOption
   ) {
     streamController.current?.abort();
     pendingPrompt.current = "";
@@ -814,7 +659,7 @@ export default function OxyJourneysLanding({
     setChatContext(nextContext);
     sessionStorage.setItem(
       VIBE_CODE_STORAGE.context,
-      JSON.stringify(nextContext),
+      JSON.stringify(nextContext)
     );
     setMessages([]);
     setMobileNavOpen(false);
@@ -845,11 +690,7 @@ export default function OxyJourneysLanding({
     return false;
   }
 
-  async function sendChatMessageStreaming(
-    value: string,
-    onChunk: (chunk: string) => void,
-    onReplace?: (text: string) => void,
-  ) {
+  async function sendChatMessageStreaming(value: string, onChunk: (chunk: string) => void, onReplace?: (text: string) => void) {
     const query = value.trim();
     if (!query || loading) return;
     setLoading(true);
@@ -866,36 +707,20 @@ export default function OxyJourneysLanding({
     };
     try {
       if (!onSearch) throw new Error("Chat API is not configured");
-      const result = await onSearch(
-        query,
-        chatContext || undefined,
-        sessionId || null,
-        {
-          signal: controller.signal,
-          onChunk: (chunk) => {
-            streamed = true;
-            onChunk(chunk);
-          },
-          onMetadata: (metadata) => saveSession(metadata.sessionId),
-          onReplace,
-        },
-      );
+      const result = await onSearch(query, chatContext || undefined, sessionId || null, {
+        signal: controller.signal,
+        onChunk: chunk => { streamed = true; onChunk(chunk); },
+        onMetadata: metadata => saveSession(metadata.sessionId),
+        onReplace,
+      });
       if (!result) throw new Error("Empty response");
       saveSession(result.sessionId);
-      if (chatContext)
-        sessionStorage.setItem(
-          VIBE_CODE_STORAGE.context,
-          JSON.stringify(chatContext),
-        );
+      if (chatContext) sessionStorage.setItem(VIBE_CODE_STORAGE.context, JSON.stringify(chatContext));
       else sessionStorage.removeItem(VIBE_CODE_STORAGE.context);
       // Support an existing nonstreaming adapter without replaying streamed text.
       if (!streamed && result.reply?.trim()) onChunk(result.reply);
       if (result.loginRequired) {
-        onChunk(
-          streamed || result.reply
-            ? ""
-            : "Please sign in to continue this conversation.",
-        );
+        onChunk(streamed || result.reply ? "" : "Please sign in to continue this conversation.");
         // Remember the unanswered prompt so it is re-sent automatically after login.
         pendingPrompt.current = query;
         pendingReplace.current = true;
@@ -905,14 +730,10 @@ export default function OxyJourneysLanding({
       if (!streamed && !result.reply?.trim()) throw new Error("Empty reply");
       if (guest) {
         guestPromptCount.current += 1;
-        sessionStorage.setItem(
-          VIBE_CODE_STORAGE.guestPromptCount,
-          String(guestPromptCount.current),
-        );
+        sessionStorage.setItem(VIBE_CODE_STORAGE.guestPromptCount, String(guestPromptCount.current));
       }
     } finally {
-      if (streamController.current === controller)
-        streamController.current = null;
+      if (streamController.current === controller) streamController.current = null;
       setLoading(false);
     }
   }
@@ -922,7 +743,7 @@ export default function OxyJourneysLanding({
       (message) =>
         !message.content.startsWith("You selected ") &&
         !message.content.includes("Tell me what you want to do next") &&
-        !message.content.includes("Tell me what you need at this stage"),
+        !message.content.includes("Tell me what you need at this stage")
     )
     .map((message) => ({
       id: message.id,
@@ -947,32 +768,34 @@ export default function OxyJourneysLanding({
     avatarUrl: profile?.avatarUrl,
   };
 
-  const members = [currentUser, { id: "oxy-ai", name: "OXY AI" }];
+  const members = [
+    currentUser,
+    { id: "oxy-ai", name: "OXY AI" },
+  ];
 
-  const sampleSuggestions = chatContext?.suggestions?.length
+  
+const sampleSuggestions =
+  chatContext?.suggestions?.length
     ? chatContext.suggestions
     : mode === "life-cycle"
-      ? (
-          LIFE_STAGE_EXAMPLES[stageId] ||
-          LIFE_STAGE_EXAMPLES["birth-early-life"] ||
-          []
-        ).slice(0, 2)
+      ? (LIFE_STAGE_EXAMPLES[stageId] || LIFE_STAGE_EXAMPLES["birth-early-life"] || []).slice(0, 2)
       : mode === "profession"
         ? ["I'm looking for a Doctor", "I'm looking for an Advocate"]
-        : [
-            "I need guidance on available loan options",
-            "I want to explore study abroad opportunities",
-          ];
+      : [
+          "I need guidance on available loan options",
+          "I want to explore study abroad opportunities",
+        ];
 
-  const adapter: ChatBoxAdapter = {
-    sendMessage: async ({ message, onChunk, onReplace }) => {
-      await sendChatMessageStreaming(message, onChunk, onReplace);
-    },
-  };
+const adapter: ChatBoxAdapter = {
+  sendMessage: async ({ message, onChunk, onReplace }) => {
+    await sendChatMessageStreaming(message, onChunk, onReplace);
+  },
+};
+
 
   function syncChatBoxMessages(
     _conversationId: string,
-    nextMessages: ChatBoxMessage[],
+    nextMessages: ChatBoxMessage[]
   ) {
     setMessages(
       nextMessages
@@ -981,23 +804,19 @@ export default function OxyJourneysLanding({
             (!message.streaming || Boolean(message.content)) &&
             !message.content.startsWith("You selected ") &&
             !message.content.includes("Tell me what you want to do next") &&
-            !message.content.includes("Tell me what you need at this stage"),
+            !message.content.includes("Tell me what you need at this stage")
         )
         .map((message) => ({
           id: message.id,
           role: message.role,
           content: message.content,
-        })),
+        }))
     );
   }
 
-  async function handleJourneyLoginSuccess(auth: {
-    userId: string;
-    userMobile: string;
-    accessToken?: string | null;
-  }) {
-    if (!auth.userId || !auth.userMobile)
-      throw new Error("Login is missing your account or mobile number.");
+
+  async function handleJourneyLoginSuccess(auth: { userId: string; userMobile: string; accessToken?: string | null }) {
+    if (!auth.userId || !auth.userMobile) throw new Error("Login is missing your account or mobile number.");
     localStorage.setItem("userId", auth.userId);
     localStorage.setItem("userMobile", auth.userMobile);
     if (auth.accessToken) localStorage.setItem("accessToken", auth.accessToken);
@@ -1042,6 +861,8 @@ export default function OxyJourneysLanding({
           historyMessages={messages}
           sessionId={sessionId}
           savedSessions={savedSessions}
+
+          partnerChats={partnerChats}
           onSelectSession={selectSession}
           profile={sidebarProfile}
           loggedIn={loggedIn}
@@ -1084,6 +905,8 @@ export default function OxyJourneysLanding({
               historyMessages={messages}
               sessionId={sessionId}
               savedSessions={savedSessions}
+
+              partnerChats={partnerChats}
               onSelectSession={selectSession}
               profile={sidebarProfile}
               loggedIn={loggedIn}
@@ -1147,75 +970,11 @@ export default function OxyJourneysLanding({
             suggestions: true,
           }}
           sx={{ height: "100%" }}
-          headerAction={
-            <>
-              {/* <a
-                className="oxj-home-partner-button"
-                href="/oxy-journey/partner/chats"
-              >
-                <svg
-                  viewBox="0 0 24 24"
-                  width="17"
-                  height="17"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="1.7"
-                  aria-hidden="true"
-                >
-                  <path d="M21 11a8 8 0 0 1-8 8H7l-4 3V7a5 5 0 0 1 5-5h5a8 8 0 0 1 8 9Z" />
-                </svg>
-                Partner chats
-                <svg
-                  viewBox="0 0 24 24"
-                  width="14"
-                  height="14"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="1.8"
-                  aria-hidden="true"
-                >
-                  <path d="M5 12h14m-5-5 5 5-5 5" />
-                </svg>
-              </a> */}
-              <button
-                type="button"
-                className="oxj-home-partner-button"
-                style={{ marginLeft: 8, cursor: "pointer" }}
-                onClick={resetConversation}
-                disabled={loading}
-                aria-label="Start a new chat"
-              >
-                <svg
-                  viewBox="0 0 24 24"
-                  width="16"
-                  height="16"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="1.8"
-                  strokeLinecap="round"
-                  aria-hidden="true"
-                >
-                  <path d="M12 5v14M5 12h14" />
-                </svg>
-                New chat
-              </button>
-            </>
-          }
-          headerTitle={
-            chatContext?.title ||
-            (mode === "life-cycle"
-              ? stage?.title || "Birth & Early Life"
-              : mode === "profession"
-                ? "Professions"
-                : "OXY Journeys AI")
-          }
+          headerAction={<><a className="oxj-home-partner-button" href="/oxy-journey/partner/chats"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" strokeWidth="1.7" aria-hidden="true"><path d="M21 11a8 8 0 0 1-8 8H7l-4 3V7a5 5 0 0 1 5-5h5a8 8 0 0 1 8 9Z" /></svg>Partner chats<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true"><path d="M5 12h14m-5-5 5 5-5 5" /></svg></a><button type="button" className="oxj-home-partner-button" style={{ marginLeft: 8, cursor: "pointer" }} onClick={resetConversation} disabled={loading} aria-label="Start a new chat"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg>New chat</button></>}
+          headerTitle={chatContext?.title || (mode === "life-cycle" ? (stage?.title || "Birth & Early Life") : mode === "profession" ? "Professions" : "OXY Journeys AI")}
           headerSubtitle={
             chatContext?.subtitle ||
-            (mode === "life-cycle"
-              ? "Life Journey"
-              : mode === "profession"
-                ? "Choose a profession to meet the right people"
-                : "Ask directly or choose a Life Journey or Platform Journey")
+            (mode === "life-cycle" ? "Life Journey" : mode === "profession" ? "Choose a profession to meet the right people" : "Ask directly or choose a Life Journey or Platform Journey")
           }
           inputPlaceholder={
             chatContext
@@ -1240,62 +999,18 @@ export default function OxyJourneysLanding({
       </div>
 
       {logoutConfirmOpen && (
-        <div
-          className="oxj-login-layer"
-          role="presentation"
-          onKeyDown={(event) => {
-            if (event.key === "Escape") setLogoutConfirmOpen(false);
-          }}
-        >
-          <button
-            className="oxj-login-backdrop"
-            type="button"
-            aria-label="Cancel logout"
-            onClick={() => setLogoutConfirmOpen(false)}
-          />
-          <section
-            className="oxj-login-card oxj-logout-card"
-            role="alertdialog"
-            aria-modal="true"
-            aria-labelledby="oxj-logout-title"
-            aria-describedby="oxj-logout-desc"
-          >
+        <div className="oxj-login-layer" role="presentation" onKeyDown={event => { if (event.key === "Escape") setLogoutConfirmOpen(false); }}>
+          <button className="oxj-login-backdrop" type="button" aria-label="Cancel logout" onClick={() => setLogoutConfirmOpen(false)} />
+          <section className="oxj-login-card oxj-logout-card" role="alertdialog" aria-modal="true" aria-labelledby="oxj-logout-title" aria-describedby="oxj-logout-desc">
             <div className="oxj-logout-icon" aria-hidden="true">
-              <svg
-                viewBox="0 0 24 24"
-                width="26"
-                height="26"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.8"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4m7 14 5-5-5-5m5 5H9" />
-              </svg>
+              <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4m7 14 5-5-5-5m5 5H9" /></svg>
             </div>
             <span className="oxj-login-kicker">OXY JOURNEYS</span>
             <h2 id="oxj-logout-title">Log out of your account?</h2>
-            <p id="oxj-logout-desc">
-              Are you sure you want to log out? You can log in again anytime to
-              continue your journey.
-            </p>
+            <p id="oxj-logout-desc">Are you sure you want to log out? You can log in again anytime to continue your journey.</p>
             <div className="oxj-logout-actions">
-              <button
-                type="button"
-                className="oxj-logout-cancel"
-                autoFocus
-                onClick={() => setLogoutConfirmOpen(false)}
-              >
-                Stay logged in
-              </button>
-              <button
-                type="button"
-                className="oxj-login-primary oxj-logout-confirm"
-                onClick={handleLogout}
-              >
-                Yes, log out
-              </button>
+              <button type="button" className="oxj-logout-cancel" autoFocus onClick={() => setLogoutConfirmOpen(false)}>Stay logged in</button>
+              <button type="button" className="oxj-login-primary oxj-logout-confirm" onClick={handleLogout}>Yes, log out</button>
             </div>
           </section>
         </div>

@@ -41,6 +41,8 @@ type JourneySidebarProps = {
   historyMessages?: ChatMessage[];
   sessionId?: string;
   savedSessions?: { id: string; title: string }[];
+  /** Chats the user has with journey partners; each opens the shared live chat. */
+  partnerChats?: { id: string; title: string; partnerName: string }[];
   onSelectSession?: (sessionId: string) => void;
   /** The profession (classification) the current chat is about, if any. */
   activeProfession?: string;
@@ -277,6 +279,8 @@ export default function JourneySidebar({
   historyMessages = [],
   sessionId = "",
   savedSessions = [],
+
+  partnerChats = [],
   onSelectSession,
   activeProfession = "",
   onProfessionSelect,
@@ -727,6 +731,35 @@ export default function JourneySidebar({
           </section>
         )}
 
+        {partnerChats.length > 0 && (
+          <section className="oxj-history-section" aria-label="Partner Chats">
+            <div className="oxj-history-head">
+              <div>
+                <span className="oxj-section-label">Partner Chats</span>
+                <small>Your chats with journey partners</small>
+              </div>
+              <span className="oxj-history-count">{partnerChats.length}</span>
+            </div>
+            <div className="oxj-history-list">
+              {partnerChats.map(item => (
+                <a
+                  key={item.id}
+                  href={`/oxy-journey/chat/${encodeURIComponent(item.id)}/user`}
+                  className="oxj-history-item oxj-session-history-item"
+                  title={`${item.title} with ${item.partnerName}`}
+                  aria-label={`Open chat with ${item.partnerName}`}
+                >
+                  <span className="oxj-history-bubble">💬</span>
+                  <span className="oxj-session-history-copy">
+                    <strong>{item.partnerName}</strong>
+                    <small>{item.title}</small>
+                  </span>
+                </a>
+              ))}
+            </div>
+          </section>
+        )}
+
         {savedSessions.length === 0 && hasSessionHistory && (
           <section className="oxj-history-section" aria-label="Chat History">
             <div className="oxj-history-head">
@@ -762,10 +795,10 @@ export default function JourneySidebar({
       </div>
 
       <div className="oxj-sidebar-footer">
-        {/* <a href="/oxy-journey/partner/chats" className="oxj-partner-chats-link">
+        <a href="/oxy-journey/partner/chats" className="oxj-partner-chats-link">
           <span>Partner chats</span>
           <span aria-hidden="true">↗</span>
-        </a> */}
+        </a>
 
         <div
           ref={profileWrapperRef}
