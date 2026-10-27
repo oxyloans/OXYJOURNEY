@@ -57,7 +57,7 @@ export const SAMPLE_LIVE_SESSIONS: AdminSession[] = [
     directSearchReady: false,
     directSearchSignal: null,
     matchedPersonName: "Gopal Krishna",
-    chatWindowUrl: "https://www.oxyjourney.com/oxy-journey/chat/OXYJOURNEY-20260925123735-6263",
+    chatWindowUrl: "https://www.oxyjourneys.com/oxy-journey/chat/OXYJOURNEY-20260925123735-6263",
     chatStatus: "LIVE",
     sessionStatus: "JOURNEY_DETECTED",
     leadStatus: "PERSON_MATCHED",
@@ -78,7 +78,7 @@ export const SAMPLE_LIVE_SESSIONS: AdminSession[] = [
     directSearchReady: false,
     directSearchSignal: null,
     matchedPersonName: "Rishi",
-    chatWindowUrl: "https://www.oxyjourney.com/oxy-journey/chat/OXYJOURNEY-20260928142315-7013",
+    chatWindowUrl: "https://www.oxyjourneys.com/oxy-journey/chat/OXYJOURNEY-20260928142315-7013",
     chatStatus: "LIVE",
     sessionStatus: "JOURNEY_DETECTED",
     leadStatus: "PERSON_MATCHED",
@@ -99,7 +99,7 @@ export const SAMPLE_LIVE_SESSIONS: AdminSession[] = [
     directSearchReady: false,
     directSearchSignal: null,
     matchedPersonName: "Rishi",
-    chatWindowUrl: "https://www.oxyjourney.com/oxy-journey/chat/OXYJOURNEY-20260926070844-7462",
+    chatWindowUrl: "https://www.oxyjourneys.com/oxy-journey/chat/OXYJOURNEY-20260926070844-7462",
     chatStatus: "LIVE",
     sessionStatus: "JOURNEY_DETECTED",
     leadStatus: "PERSON_MATCHED",
@@ -120,7 +120,7 @@ export const SAMPLE_LIVE_SESSIONS: AdminSession[] = [
     directSearchReady: false,
     directSearchSignal: null,
     matchedPersonName: "Rishi",
-    chatWindowUrl: "https://www.oxyjourney.com/oxy-journey/chat/OXYJOURNEY-20260928151237-9171",
+    chatWindowUrl: "https://www.oxyjourneys.com/oxy-journey/chat/OXYJOURNEY-20260928151237-9171",
     chatStatus: "LIVE",
     sessionStatus: "JOURNEY_DETECTED",
     leadStatus: "PERSON_MATCHED",
@@ -141,7 +141,7 @@ export const SAMPLE_LIVE_SESSIONS: AdminSession[] = [
     directSearchReady: true,
     directSearchSignal: "question phase finished",
     matchedPersonName: "Gopal Krishna",
-    chatWindowUrl: "https://www.oxyjourney.com/oxy-journey/chat/OXYJOURNEY-20261008115719-2970",
+    chatWindowUrl: "https://www.oxyjourneys.com/oxy-journey/chat/OXYJOURNEY-20261008115719-2970",
     chatStatus: "LIVE",
     sessionStatus: "STARTED",
     leadStatus: "PERSON_MATCHED",
@@ -162,7 +162,7 @@ export const SAMPLE_LIVE_SESSIONS: AdminSession[] = [
     directSearchReady: true,
     directSearchSignal: "question phase finished",
     matchedPersonName: "LP Saravanaa",
-    chatWindowUrl: "https://www.oxyjourney.com/oxy-journey/chat/OXYJOURNEY-20261012063847-6212",
+    chatWindowUrl: "https://www.oxyjourneys.com/oxy-journey/chat/OXYJOURNEY-20261012063847-6212",
     chatStatus: "LIVE",
     sessionStatus: "STARTED",
     leadStatus: "CANDIDATES_SHOWN",
@@ -183,7 +183,7 @@ export const SAMPLE_LIVE_SESSIONS: AdminSession[] = [
     directSearchReady: true,
     directSearchSignal: "question phase finished",
     matchedPersonName: "Madhu Praveen Kumar",
-    chatWindowUrl: "https://www.oxyjourney.com/oxy-journey/chat/OXYJOURNEY-20261013051941-5534",
+    chatWindowUrl: "https://www.oxyjourneys.com/oxy-journey/chat/OXYJOURNEY-20261013051941-5534",
     chatStatus: "LIVE",
     sessionStatus: "STARTED",
     leadStatus: "PERSON_MATCHED",
@@ -207,7 +207,7 @@ export const SAMPLE_COMPLETED_SESSIONS: AdminSession[] = [
     directSearchReady: true,
     directSearchSignal: "handover complete",
     matchedPersonName: "Rajesh Sharma",
-    chatWindowUrl: "https://www.oxyjourney.com/oxy-journey/chat/OXYJOURNEY-20260920101500-1120",
+    chatWindowUrl: "https://www.oxyjourneys.com/oxy-journey/chat/OXYJOURNEY-20260920101500-1120",
     chatStatus: "COMPLETED",
     sessionStatus: "COMPLETED",
     leadStatus: "CONVERTED",
@@ -395,37 +395,37 @@ async function fetchAdminEndpoint<T>(
   };
 }
 
-// 1. Live sessions API: GET /api/ai-service/agent/admin/sessions/live
+// 1. Live sessions API: GET /api/ai-service/vibe-code/admin/sessions/live
 export async function fetchLiveSessions(signal?: AbortSignal) {
   return fetchAdminEndpoint<AdminSession[]>(
-    "/ai-service/agent/admin/sessions/live",
+    "/ai-service/vibe-code/admin/sessions/live",
     SAMPLE_LIVE_SESSIONS,
     signal
   );
 }
 
-// 2. Completed sessions API: GET /api/ai-service/agent/admin/sessions/completed
+// 2. Completed sessions API: GET /api/ai-service/vibe-code/admin/sessions/completed
 export async function fetchCompletedSessions(signal?: AbortSignal) {
   return fetchAdminEndpoint<AdminSession[]>(
-    "/ai-service/agent/admin/sessions/completed",
+    "/ai-service/vibe-code/admin/sessions/completed",
     SAMPLE_COMPLETED_SESSIONS,
     signal
   );
 }
 
-// 3. All sessions API: GET /api/ai-service/agent/admin/sessions
+// 3. All sessions API: GET /api/ai-service/vibe-code/admin/sessions
 export async function fetchAllSessions(signal?: AbortSignal) {
   return fetchAdminEndpoint<AdminSession[]>(
-    "/ai-service/agent/admin/sessions",
+    "/ai-service/vibe-code/admin/sessions",
     [...SAMPLE_LIVE_SESSIONS, ...SAMPLE_COMPLETED_SESSIONS],
     signal
   );
 }
 
-// 4. All admin messages API: GET /api/ai-service/agent/admin/all
+// 4. All admin messages API: GET /api/ai-service/vibe-code/admin/all
 export async function fetchAllAdminMessages(signal?: AbortSignal) {
   return fetchAdminEndpoint<AdminMessage[]>(
-    "/ai-service/agent/admin/all",
+    "/ai-service/vibe-code/admin/all",
     SAMPLE_ALL_MESSAGES,
     signal
   );

@@ -38,7 +38,7 @@ async function request<T>(path: string, signal?: AbortSignal, body?: unknown): P
 }
 // Shared chat runs on the ai-service backend, keyed only by sessionId:
 //   GET  /ai-service/vibe-code/history/{sessionId}   -> every message of the session
-//   POST /ai-service/agent/{sessionId}/message       -> { message, senderName, senderType }
+//   POST /ai-service/vibe-code/{sessionId}/message      -> { message, senderName, senderType }
 // Any logged-in user holding the sessionId can read and post, so no per-user membership check.
 const PARTNER_SENDER_ID = "session-partner";
 // senderType decides who is who in the single window. The browser that ran the AI intake
@@ -128,7 +128,7 @@ export async function getSharedMessages(id: string, _after: string, signal?: Abo
 export async function postSharedMessage(id: string, content: string, clientMessageId: string): Promise<SharedMessage> {
   sentLog.push({ sessionId: id, clientMessageId, content: content.trim() });
   try {
-    await chatFetch(`/ai-service/agent/${encodeURIComponent(id)}/message`, undefined, { message: content, senderName: myRole(id) === "USER" ? "User" : "Partner", senderType: myRole(id) });
+    await chatFetch(`/ai-service/vibe-code/${encodeURIComponent(id)}/message`, undefined, { message: content, senderName: myRole(id) === "USER" ? "User" : "Partner", senderType: myRole(id) });
   } catch (error) {
     sentLog.pop();
     throw error;

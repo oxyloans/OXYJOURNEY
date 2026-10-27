@@ -750,7 +750,7 @@ function AdminDashboardMain({ onLogout }: { onLogout: () => void }) {
                           </a>
                         ) : (
                           <a
-                            href={`https://www.oxyjourney.com/oxy-journey/chat/${encodeURIComponent(s.sessionId)}`}
+                            href={`https://www.oxyjourneys.com/oxy-journey/chat/${encodeURIComponent(s.sessionId)}`}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="ad-action-btn is-primary"
@@ -867,7 +867,7 @@ function AdminDashboardMain({ onLogout }: { onLogout: () => void }) {
                                 </a>
                               ) : (
                                 <a
-                                  href={`https://www.oxyjourney.com/oxy-journey/chat/${encodeURIComponent(s.sessionId)}`}
+                                  href={`https://www.oxyjourneys.com/oxy-journey/chat/${encodeURIComponent(s.sessionId)}`}
                                   target="_blank"
                                   rel="noopener noreferrer"
                                   className="ad-action-btn is-primary"
