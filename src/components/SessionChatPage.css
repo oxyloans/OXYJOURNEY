@@ -140,3 +140,7 @@
   .oj-chat-alert{padding:10px 16px}
 }
 @media (prefers-reduced-motion:reduce){.sc-orbit,.sc-link,.oj-chat-message-row,.oj-chat-loader,.oj-chat-status-dot.is-connected,.sc-pill.is-on i,.oj-chat-toast{animation:none}.oj-chat-home,.oj-chat-send,.sc-copy,.sc-starters button{transition:none}}
+
+/* Highlighted tagline in the page header */
+.oj-chat-tagline{padding:7px 16px;border:1px solid #d9d0f7;border-radius:999px;background:linear-gradient(135deg,#f1ecff,#e8f0ff);color:#5b43d6;font-size:14px;font-weight:700;letter-spacing:.01em;box-shadow:0 2px 8px rgba(98,73,196,.12)}
+@media (max-width:1000px){.oj-chat-tagline{display:none}}

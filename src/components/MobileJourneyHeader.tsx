@@ -55,26 +55,6 @@ export default function MobileJourneyHeader({
             <span className="oxj-mobile-btn-text">New</span>
           </button>
         )}
-
-        {/* <a
-          href="/oxy-journey/partner/chats"
-          className="oxj-mobile-action-btn oxj-mobile-partner-btn"
-          aria-label="Partner chats"
-          title="Open Partner chats"
-        >
-          <svg
-            viewBox="0 0 24 24"
-            width="14"
-            height="14"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.9"
-            aria-hidden="true"
-          >
-            <path d="M21 11a8 8 0 0 1-8 8H7l-4 3V7a5 5 0 0 1 5-5h5a8 8 0 0 1 8 9Z" />
-          </svg>
-          <span className="oxj-mobile-btn-text">Partners</span>
-        </a> */}
       </div>
     </header>
   );

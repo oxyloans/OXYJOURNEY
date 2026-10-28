@@ -300,6 +300,7 @@ export default function JourneySidebar({
   const query = search.trim().toLowerCase();
   const controlsId = useId();
   const [draftStageId, setDraftStageId] = useState(stageId);
+  const [sidebarView, setSidebarView] = useState<"journeys" | "history" | "partners">("journeys");
   const [stageDropdownOpen, setStageDropdownOpen] = useState(mode === "life-cycle");
   const [professionDropdownOpen, setProfessionDropdownOpen] = useState(mode === "profession");
   const [expandedPlatformId, setExpandedPlatformId] = useState(activePlatformId);
@@ -458,29 +459,49 @@ export default function JourneySidebar({
         <div className="oxj-mode-tabs">
           <button
             type="button"
-            className={mode === "life-cycle" ? "active life" : ""}
-            onClick={() => onModeChange("life-cycle")}
+            className={sidebarView === "journeys" && mode === "life-cycle" ? "active life" : ""}
+            onClick={() => { setSidebarView("journeys"); onModeChange("life-cycle"); }}
           >
             LIFE JOURNEY
           </button>
           {SHOW_PLATFORM_JOURNEYS && (
             <button
               type="button"
-              className={mode === "platform" ? "active platform" : ""}
-              onClick={() => onModeChange("platform")}
+              className={sidebarView === "journeys" && mode === "platform" ? "active platform" : ""}
+              onClick={() => { setSidebarView("journeys"); onModeChange("platform"); }}
             >
               PLATFORM JOURNEY
             </button>
           )}
           <button
             type="button"
-            className={mode === "profession" ? "active platform" : ""}
-            onClick={() => onModeChange("profession")}
+            className={sidebarView === "journeys" && mode === "profession" ? "active platform" : ""}
+            onClick={() => { setSidebarView("journeys"); onModeChange("profession"); }}
           >
             PROFESSIONS
           </button>
         </div>
 
+        <div className="oxj-view-tabs">
+          <button
+            type="button"
+            className={sidebarView === "history" ? "active" : ""}
+            aria-pressed={sidebarView === "history"}
+            onClick={() => setSidebarView(view => (view === "history" ? "journeys" : "history"))}
+          >
+            History
+          </button>
+          <button
+            type="button"
+            className={sidebarView === "partners" ? "active" : ""}
+            aria-pressed={sidebarView === "partners"}
+            onClick={() => setSidebarView(view => (view === "partners" ? "journeys" : "partners"))}
+          >
+            Partner chats
+          </button>
+        </div>
+
+        {sidebarView === "journeys" && (<>
         <div className="oxj-search">
           <SearchIcon />
           <input
@@ -697,7 +718,9 @@ export default function JourneySidebar({
           </section>
         )}
 
-        {savedSessions.length > 0 && (
+        </>)}
+
+        {sidebarView === "history" && savedSessions.length > 0 && (
           <section className="oxj-history-section" aria-label="Chat History">
             <div className="oxj-history-head">
               <div>
@@ -731,7 +754,7 @@ export default function JourneySidebar({
           </section>
         )}
 
-        {partnerChats.length > 0 && (
+        {sidebarView === "partners" && partnerChats.length > 0 && (
           <section className="oxj-history-section" aria-label="Partner Chats">
             <div className="oxj-history-head">
               <div>
@@ -760,7 +783,15 @@ export default function JourneySidebar({
           </section>
         )}
 
-        {savedSessions.length === 0 && hasSessionHistory && (
+        {sidebarView === "history" && savedSessions.length === 0 && !hasSessionHistory && (
+          <div className="oxj-list-empty">No chat history yet.</div>
+        )}
+
+        {sidebarView === "partners" && partnerChats.length === 0 && (
+          <div className="oxj-list-empty">No partner chats yet.</div>
+        )}
+
+        {sidebarView === "history" && savedSessions.length === 0 && hasSessionHistory && (
           <section className="oxj-history-section" aria-label="Chat History">
             <div className="oxj-history-head">
               <div>
@@ -795,10 +826,6 @@ export default function JourneySidebar({
       </div>
 
       <div className="oxj-sidebar-footer">
-        <a href="/oxy-journey/partner/chats" className="oxj-partner-chats-link">
-          <span>Partner chats</span>
-          <span aria-hidden="true">↗</span>
-        </a>
 
         <div
           ref={profileWrapperRef}

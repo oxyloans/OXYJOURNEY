@@ -204,7 +204,8 @@ export async function requestJourneyOtp(args: {
         deviceId: args.deviceId,
         ...phoneField,
       }),
-    }
+    },
+    API_CONFIG.login
   );
 }
 
@@ -245,7 +246,8 @@ export async function verifyJourneyOtp(args: {
         salt: args.salt,
         expiryTime: args.expiryTime,
       }),
-    }
+    },
+    API_CONFIG.login
   );
 }
 

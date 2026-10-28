@@ -192,6 +192,18 @@ const markdownComponents = {
         </a>
       );
     }
+    // The "chat window" link after a partner is connected: a clear button, opened only on click.
+    if (href && label === "Open chat window") {
+      return (
+        <a className="cb-chat-cta" href={href} target="_blank" rel="noopener noreferrer" {...props}>
+          <span className="cb-chat-cta-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"><path d="M21 11a8 8 0 0 1-8 8H7l-4 3V7a5 5 0 0 1 5-5h5a8 8 0 0 1 8 9Z" /></svg>
+          </span>
+          <span className="cb-chat-cta-copy"><strong>Open chat window</strong><small>Talk to your partner directly</small></span>
+          <svg className="cb-chat-cta-arrow" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 12h14m-5-5 5 5-5 5" /></svg>
+        </a>
+      );
+    }
     return (
       <a href={href} target="_blank" rel="noopener noreferrer" {...props}>
         {children}
@@ -226,7 +238,8 @@ function ThinkingIndicator({ longer }: { longer: boolean }) {
   }, []);
   return (
     <div className="cb-response-loader" role="status" aria-label="OXY AI is preparing a response">
-      <span key={index} className="cb-thinking-text">{THINKING_TERMS[index]}…</span>
+      <span key={index} className="cb-thinking-text">{THINKING_TERMS[index]}</span>
+      <span className="cb-thinking-dots" aria-hidden="true"><i /><i /><i /></span>
       {longer && <span className="cb-thinking-note">taking a little longer</span>}
     </div>
   );
@@ -374,6 +387,48 @@ export default function ChatBox({
     el.style.height = `${Math.min(el.scrollHeight, 150)}px`;
   }, [input]);
 
+  // Voice input: dictate into the composer, then edit the text before sending.
+  const SpeechRecognitionCtor: any =
+    typeof window !== "undefined" ? (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition : undefined;
+  const [listening, setListening] = useState(false);
+  const [voiceError, setVoiceError] = useState("");
+  const recognitionRef = useRef<any>(null);
+
+  function stopVoice() {
+    try { recognitionRef.current?.stop(); } catch { /* already stopped */ }
+  }
+
+  function toggleVoice() {
+    if (!SpeechRecognitionCtor) return;
+    if (listening) { stopVoice(); return; }
+    setVoiceError("");
+    const recognition = new SpeechRecognitionCtor();
+    recognition.lang = navigator.language || "en-IN";
+    recognition.continuous = true;
+    recognition.interimResults = true;
+    const base = input.trim() ? input.trim() + " " : "";
+    recognition.onresult = (event: any) => {
+      let transcript = "";
+      for (let i = 0; i < event.results.length; i++) transcript += event.results[i][0].transcript;
+      setInput((base + transcript).slice(0, 4000));
+    };
+    recognition.onerror = (event: any) => {
+      const code = event?.error;
+      if (code === "not-allowed" || code === "service-not-allowed") setVoiceError("Microphone access is blocked. Allow it in your browser settings and try again.");
+      else if (code === "no-speech") setVoiceError("I didn't hear anything. Tap the mic and try again.");
+      else if (code !== "aborted") setVoiceError("Voice input stopped. Please try again.");
+    };
+    recognition.onend = () => {
+      recognitionRef.current = null;
+      setListening(false);
+      inputRef.current?.focus();
+    };
+    recognitionRef.current = recognition;
+    try { recognition.start(); setListening(true); } catch { setListening(false); }
+  }
+
+  useEffect(() => () => { try { recognitionRef.current?.abort(); } catch { /* ignore */ } }, []);
+
   const activeConversation = useMemo(
     () =>
       conversations.find((item) => item.id === activeConversationId) ||
@@ -427,6 +482,7 @@ export default function ChatBox({
     const message = (messageOverride ?? input).trim();
     if (!message || sending || busy || !activeConversation) return;
     if (onBeforeSend && !onBeforeSend(message)) { setInput(message); return; }
+    if (recognitionRef.current) { try { recognitionRef.current.abort(); } catch { /* ignore */ } }
 
     const conversationId = activeConversation.id;
     const selectedAttachments = attachments;
@@ -849,7 +905,20 @@ export default function ChatBox({
             </div>
           )}
 
-          <form className="cb-composer" onSubmit={handleSubmit}>
+          {(listening || voiceError) && (
+            <div className={`cb-voice-status${voiceError && !listening ? " is-error" : ""}`} role="status" aria-live="polite">
+              {listening ? (
+                <>
+                  <span className="cb-voice-bars" aria-hidden="true"><i /><i /><i /><i /><i /></span>
+                  <span>Listening… speak now. Tap the mic to stop, then edit if needed.</span>
+                </>
+              ) : (
+                <span>{voiceError}</span>
+              )}
+            </div>
+          )}
+
+          <form className={`cb-composer${listening ? " is-listening" : ""}`} onSubmit={handleSubmit}>
             {features.attachments && (
               <>
                 <input
@@ -882,6 +951,24 @@ export default function ChatBox({
               onChange={(event) => setInput(event.target.value)}
               onKeyDown={handleKeyDown}
             />
+
+            {SpeechRecognitionCtor && (
+              <button
+                type="button"
+                className={`cb-mic${listening ? " is-listening" : ""}`}
+                onClick={toggleVoice}
+                disabled={isBusy}
+                aria-label={listening ? "Stop voice input" : "Start voice input"}
+                aria-pressed={listening}
+                title={listening ? "Stop recording" : "Speak your message"}
+              >
+                {listening ? (
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6" y="6" width="12" height="12" rx="2.5" /></svg>
+                ) : (
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3" /><path d="M5 11a7 7 0 0 0 14 0M12 18v3" /></svg>
+                )}
+              </button>
+            )}
 
             <button className="cb-send" type="submit" disabled={!input.trim() || isBusy} aria-label="Send message">
               {isBusy ? (

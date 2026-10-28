@@ -99,7 +99,7 @@ async function intakePartnerName(id: string, signal?: AbortSignal) {
     const data = await chatFetch(`/ai-service/vibe-code/history/${encodeURIComponent(id)}`, signal);
     const items: any[] = Array.isArray(data) ? data : Array.isArray(data?.messages) ? data.messages : [];
     const handoff = items.filter(item => (item?.sender || "").toUpperCase() === "AI" && /connected with/i.test(String(item.message))).pop();
-    name = handoff ? /connected with ([^.\n]+?)\./i.exec(String(handoff.message))?.[1]?.trim() || "" : "";
+    name = handoff ? /connected with ([^.\n]+?)\./i.exec(String(handoff.message))?.[1]?.replace(/[*_]+/g, "").trim() || "" : "";
     partnerNameCache.set(id, name);
   } catch { /* the name is optional; retry on a later sync */ }
   return name;

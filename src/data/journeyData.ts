@@ -1,7 +1,7 @@
 import type { LifeStage, Platform } from "../types/journey";
 
 export const LOGO = "https://i.ibb.co/XxJJRXx5/jun-logo.png";
-export const SIDEBAR_ICON = "https://i.ibb.co/5X1jWc38/junicn.png";
+export const SIDEBAR_ICON = "/favicon.svg";
 
 /**
  * The frontend stores only the main life stages.
@@ -183,29 +183,36 @@ export function getPlatformById(platformId: string) {
  * backend as the classification; `label` is only what is shown; `field` marks a field/industry rather
  * than a person's role, which changes how the opening message reads.
  */
-export type Classification = { name: string; label?: string; icon: string; field?: boolean };
+export type Classification = {
+  name: string;
+  label?: string;
+  icon: string;
+  field?: boolean;
+  /** Second suggested message, specific to this profession. */
+  example?: string;
+};
 
 export const TOP_CLASSIFICATIONS: Classification[] = [
-  { name: "Proprietor", icon: "🏪" },
-  { name: "Business", icon: "💼", field: true },
-  { name: "Director", icon: "🧑‍💼" },
-  { name: "Doctor", icon: "🩺" },
-  { name: "Advocate", icon: "⚖️" },
-  { name: "Managing Director", icon: "👔" },
-  { name: "Engineer", icon: "🛠️" },
-  { name: "Education", icon: "🎓", field: true },
-  { name: "Chartered Accountant", icon: "🧮" },
-  { name: "Owner", icon: "🏬" },
-  { name: "Real Estate", icon: "🏠", field: true },
-  { name: "Ceo", label: "CEO", icon: "🌟" },
-  { name: "Home Maker", icon: "🏡" },
-  { name: "Managing Partner", icon: "🤝" },
-  { name: "Civil Engineer", icon: "🏗️" },
-  { name: "Builder", icon: "🧱" },
-  { name: "Banking", icon: "🏦", field: true },
-  { name: "Exporter & Hosiery Mfrs.", icon: "🏭", field: true },
-  { name: "Business Owner", icon: "🏢" },
-  { name: "President", icon: "🎖️" },
+  { name: "Proprietor", icon: "🏪", example: "I want to grow my proprietorship and need GST and licence support" },
+  { name: "Business", icon: "💼", field: true, example: "I need help scaling my business and finding funding" },
+  { name: "Director", icon: "🧑‍💼", example: "I need guidance on director duties and company compliance" },
+  { name: "Doctor", icon: "🩺", example: "I need a specialist doctor for a second opinion" },
+  { name: "Advocate", icon: "⚖️", example: "I need an advocate for a property dispute" },
+  { name: "Managing Director", icon: "👔", example: "I need advice on company strategy and board governance" },
+  { name: "Engineer", icon: "🛠️", example: "I need an engineer for a technical consultation on my project" },
+  { name: "Education", icon: "🎓", field: true, example: "I am looking for the right school or course for my child" },
+  { name: "Chartered Accountant", icon: "🧮", example: "I need a CA to file my income tax returns" },
+  { name: "Owner", icon: "🏬", example: "I need help managing and growing my business as an owner" },
+  { name: "Real Estate", icon: "🏠", field: true, example: "I want to buy a property and need a trusted real estate advisor" },
+  { name: "Ceo", label: "CEO", icon: "🌟", example: "I need a mentor for leadership and scaling my company" },
+  { name: "Home Maker", icon: "🏡", example: "I want to start a home-based business and need guidance" },
+  { name: "Managing Partner", icon: "🤝", example: "I need help drafting a partnership deed for my firm" },
+  { name: "Civil Engineer", icon: "🏗️", example: "I need a civil engineer for a building design and structural check" },
+  { name: "Builder", icon: "🧱", example: "I am looking for a builder to construct my house" },
+  { name: "Banking", icon: "🏦", field: true, example: "I need advice on business loans and bank accounts" },
+  { name: "Exporter & Hosiery Mfrs.", icon: "🏭", field: true, example: "I want to export hosiery products and need help with export licences" },
+  { name: "Business Owner", icon: "🏢", example: "I need help with business registration and compliance" },
+  { name: "President", icon: "🎖️", example: "I need guidance on running an association or club effectively" },
 ];
 
 export const classificationLabel = (item: Classification) => item.label || item.name;
@@ -215,3 +222,6 @@ export function classificationOpeningMessage(item: Classification) {
   if (item.field) return `I'm looking for someone in ${label}`;
   return `I'm looking for ${/^[aeiou]/i.test(label) ? "an" : "a"} ${label}`;
 }
+
+export const classificationSuggestions = (item: Classification) =>
+  [classificationOpeningMessage(item), item.example].filter((text): text is string => Boolean(text));

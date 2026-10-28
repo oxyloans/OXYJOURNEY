@@ -24,9 +24,9 @@ export const TAGLINE = "Every journey, one partner";
 
 type Prefill = { text: string; kind: "life" | "profession"; stageId?: string; classification?: string };
 
-const professionPrefill = (name: string): Prefill => {
+const professionPrefill = (name: string, text?: string): Prefill => {
   const item = TOP_CLASSIFICATIONS.find(entry => entry.name === name)!;
-  return { text: classificationOpeningMessage(item), kind: "profession", classification: item.name };
+  return { text: text ?? classificationOpeningMessage(item), kind: "profession", classification: item.name };
 };
 
 /**
@@ -36,18 +36,14 @@ const professionPrefill = (name: string): Prefill => {
 const PREFILLS: Prefill[] = [
   { text: "I want to study abroad", kind: "life", stageId: "youth-career" },
   professionPrefill("Doctor"),
+  professionPrefill("Doctor", "I need a specialist doctor for a second opinion"),
   { text: "I am looking for a home loan", kind: "life", stageId: "work-family" },
   professionPrefill("Chartered Accountant"),
+  professionPrefill("Chartered Accountant", "I need a CA to file my income tax returns"),
   { text: "Help me plan savings and investments", kind: "life", stageId: "wealth-security" },
   professionPrefill("Advocate"),
+  professionPrefill("Advocate", "I need an advocate for a property dispute"),
 ];
-
-function formatMobile(value: string) {
-  const clean = value.replace(/[^\d+]/g, "");
-  if (clean.startsWith("+91") && clean.length === 13) return `+91 ${clean.slice(3, 8)} ${clean.slice(8)}`;
-  if (clean.length === 10) return `+91 ${clean.slice(0, 5)} ${clean.slice(5)}`;
-  return clean;
-}
 
 /** Card that tilts toward the pointer. */
 function TiltCard({ className, onClick, children }: { className: string; onClick: () => void; children: ReactNode }) {
@@ -74,6 +70,7 @@ export default function HomeLanding({ onStart }: HomeLandingProps) {
   const [loginOpen, setLoginOpen] = useState(false);
   const [identity, setIdentity] = useState(() => getJourneyIdentity());
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const accountName = (localStorage.getItem("userName") || "").trim() || "My account";
 
   useEffect(() => {
     const el = inputRef.current;
@@ -107,17 +104,17 @@ export default function HomeLanding({ onStart }: HomeLandingProps) {
           <nav className="hl-nav" aria-label="Primary">
             <button type="button" className="hl-assistant" onClick={() => onStart()}>
               <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" aria-hidden="true"><path d="m12 3 2.5 6.5L21 12l-6.5 2.5L12 21l-2.5-6.5L3 12l6.5-2.5L12 3Z" /></svg>
-              AI Assistant
+              AI Dashboard
             </button>
             <button
               type="button"
               className={`hl-account ${identity ? "is-signed-in" : ""}`}
               onClick={() => { if (!identity) setLoginOpen(true); }}
-              aria-label={identity ? `Signed in as ${formatMobile(identity.userMobile)}` : "Log in"}
-              title={identity ? formatMobile(identity.userMobile) : "Log in"}
+              aria-label={identity ? `Signed in as ${accountName}` : "Account"}
+              title={identity ? accountName : "Account"}
             >
               <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" aria-hidden="true"><circle cx="12" cy="8" r="3.6" /><path d="M5 20c.8-3.6 3.7-5.4 7-5.4s6.2 1.8 7 5.4" /></svg>
-              {identity && <span>{formatMobile(identity.userMobile)}</span>}
+              {identity && <span>{accountName}</span>}
             </button>
           </nav>
         </div>

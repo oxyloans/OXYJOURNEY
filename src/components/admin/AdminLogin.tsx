@@ -48,7 +48,7 @@ export default function AdminLogin({ onLoginSuccess }: AdminLoginProps) {
                 alt="OXY Journeys"
                 className="al-brand-logo"
                 onError={(e) => {
-                  e.currentTarget.src = "https://i.ibb.co/XxJJRXx5/jun-logo.png";
+                  e.currentTarget.src = "/favicon.svg";
                 }}
               />
             </div>

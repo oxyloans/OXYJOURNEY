@@ -3,7 +3,7 @@ import {
   getLifeStageById,
   getPlatformById,
   classificationLabel,
-  classificationOpeningMessage,
+  classificationSuggestions,
   LIFE_STAGE_EXAMPLES,
   LIFE_STAGES,
   PLATFORMS,
@@ -486,6 +486,8 @@ export default function OxyJourneysLanding({
     setDisplayName("");
     setLoggedIn(false);
     setLogoutConfirmOpen(false);
+    // Signed-out users go back to the main page.
+    window.location.assign("/");
   }
 
   async function handleModeChange(nextMode: JourneyMode) {
@@ -530,7 +532,7 @@ export default function OxyJourneysLanding({
       title: classificationLabel(item),
       subtitle: "Profession",
       assistantIntro: "",
-      suggestions: [classificationOpeningMessage(item)],
+      suggestions: classificationSuggestions(item),
       classificationValue: item.name,
     };
     setChatContext(nextContext);
@@ -970,7 +972,7 @@ const adapter: ChatBoxAdapter = {
             suggestions: true,
           }}
           sx={{ height: "100%" }}
-          headerAction={<><a className="oxj-home-partner-button" href="/oxy-journey/partner/chats"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" strokeWidth="1.7" aria-hidden="true"><path d="M21 11a8 8 0 0 1-8 8H7l-4 3V7a5 5 0 0 1 5-5h5a8 8 0 0 1 8 9Z" /></svg>Partner chats<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true"><path d="M5 12h14m-5-5 5 5-5 5" /></svg></a><button type="button" className="oxj-home-partner-button" style={{ marginLeft: 8, cursor: "pointer" }} onClick={resetConversation} disabled={loading} aria-label="Start a new chat"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg>New chat</button></>}
+          headerAction={<><button type="button" className="oxj-home-partner-button" style={{ marginLeft: 8, cursor: "pointer" }} onClick={resetConversation} disabled={loading} aria-label="Start a new chat"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg>New chat</button></>}
           headerTitle={chatContext?.title || (mode === "life-cycle" ? (stage?.title || "Birth & Early Life") : mode === "profession" ? "Professions" : "OXY Journeys AI")}
           headerSubtitle={
             chatContext?.subtitle ||

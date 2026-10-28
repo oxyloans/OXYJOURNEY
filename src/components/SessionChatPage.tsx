@@ -149,9 +149,6 @@ export default function SessionChatPage({ sessionId, embedded = false }: { sessi
               <path d="M21 11.5a8.4 8.4 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.4 8.4 0 0 1-3.8-.9L3 21l1.9-5.7a8.4 8.4 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.4 8.4 0 0 1 3.8-.9H13a8.5 8.5 0 0 1 8 8v.5Z" stroke="currentColor" />
             </Icon3D>
           </div>
-          <span className="oj-chat-eyebrow">YOUR SHARED SPACE</span>
-          <h1>A conversation.<br />A new possibility.</h1>
-          <p>Connect with your journey partner and take the next step together.</p>
         </div>
 
         <div className={`sc-pill ${connected ? "is-on" : ""}`} role="status"><i />{status}</div>
@@ -167,8 +164,6 @@ export default function SessionChatPage({ sessionId, embedded = false }: { sessi
           </div> : <p>Sign in to view the people in this conversation.</p>}
         </div>
 
-        <button type="button" className="sc-copy" onClick={copyLink} disabled={!valid}><Icon name="link" /> Copy conversation link</button>
-        <p className="sc-note">Keep your journey moving. Share this conversation with your partner.</p>
       </aside>
 
       <section className="oj-chat-window sc-window" aria-label="Session conversation">

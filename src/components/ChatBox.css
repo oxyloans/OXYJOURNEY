@@ -650,7 +650,7 @@ button.cb-person:focus-visible{outline:2px solid #b9a8f0;outline-offset:2px}
 .cb-person-copy{display:grid;gap:2px;min-width:0;flex:1}
 .cb-person-copy strong{overflow:hidden;color:#171c28;font-size:14.5px;font-weight:650;text-overflow:ellipsis;white-space:nowrap}
 .cb-person-copy small{overflow:hidden;color:#6b7385;font-size:12.5px;line-height:1.4;text-overflow:ellipsis;white-space:nowrap}
-.cb-person-cta{display:inline-flex;align-items:center;gap:5px;flex:0 0 auto;padding:6px 11px;border-radius:999px;background:#f3f0fc;color:#6249c4;font-size:12px;font-weight:650;opacity:.0;transform:translateX(-4px);transition:opacity .2s ease,transform .2s ease,background .2s ease}
+.cb-person-cta{display:inline-flex;align-items:center;gap:5px;flex:0 0 auto;padding:6px 11px;border-radius:999px;background:#f3f0fc;color:#6249c4;font-size:12px;font-weight:650;opacity:1;transform:none;transition:opacity .2s ease,transform .2s ease,background .2s ease}
 button.cb-person:hover .cb-person-cta,button.cb-person:focus-visible .cb-person-cta{opacity:1;transform:none}
 @media (hover:none){.cb-person-cta{opacity:1;transform:none}}
 @media (max-width:640px){.cb-person{padding:11px 12px;gap:11px}.cb-person-avatar{width:38px;height:38px;border-radius:12px}.cb-person-copy small,.cb-person-copy strong{white-space:normal}}
@@ -669,9 +669,9 @@ button.cb-person:hover .cb-person-cta,button.cb-person:focus-visible .cb-person-
 @media (prefers-reduced-motion:reduce){.cb-thinking-text,.cb-thinking-note{animation:none}}
 
 /* Specialty tags on people cards */
-.cb-person-copy{gap:6px}
-.cb-person-tags{display:flex;flex-wrap:wrap;gap:6px}
-.cb-person-tags em{padding:3px 9px;border:1px solid #e6e1f3;border-radius:999px;background:#f7f5fd;color:#5b4b9a;font-size:12px;font-style:normal;font-weight:500;line-height:1.4;white-space:nowrap}
+.cb-person-copy{gap:6px;grid-template-columns:minmax(0,1fr)}
+.cb-person-tags{display:flex;flex-wrap:wrap;gap:6px;min-width:0}
+.cb-person-tags em{max-width:100%;min-width:0;padding:3px 9px;border:1px solid #e6e1f3;border-radius:14px;background:#f7f5fd;color:#5b4b9a;font-size:12px;font-style:normal;font-weight:500;line-height:1.4;white-space:normal;overflow-wrap:anywhere}
 .cb-person-tags em.is-more{background:transparent;border-style:dashed;color:#8a8fa0}
 .cb-person{align-items:flex-start}
 .cb-person-avatar{margin-top:1px}
@@ -688,3 +688,182 @@ button.cb-person:hover .cb-person-cta,button.cb-person:focus-visible .cb-person-
 .cb-link-copy small{color:#6b7385;font-size:12px}
 .cb-link-arrow{flex:0 0 auto;margin-left:4px;color:#8a8fa0;transition:transform .2s ease,color .2s ease}
 .cb-markdown a.cb-link-card:hover .cb-link-arrow{color:#6249c4;transform:translate(2px,-2px)}
+
+/* ---------- Connected: chat window button ---------- */
+.cb-markdown a.cb-chat-cta{display:flex;width:fit-content;max-width:100%;align-items:center;gap:12px;margin:10px 0 2px;padding:11px 16px 11px 12px;border-radius:16px;background:linear-gradient(135deg,#7c5cf0,#5b43d6);color:#fff;text-decoration:none;box-shadow:0 8px 20px rgba(98,73,196,.28);transition:transform .2s ease,box-shadow .2s ease}
+.cb-markdown a.cb-chat-cta:hover{transform:translateY(-1px);box-shadow:0 12px 26px rgba(98,73,196,.36)}
+.cb-markdown a.cb-chat-cta:focus-visible{outline:2px solid #b9a8f0;outline-offset:3px}
+.cb-chat-cta-icon{flex:0 0 auto;display:grid;place-items:center;width:38px;height:38px;border-radius:12px;background:rgba(255,255,255,.18)}
+.cb-chat-cta-copy{display:grid;gap:1px;min-width:0}
+.cb-chat-cta-copy strong{color:#fff;font-size:15px;font-weight:650}
+.cb-chat-cta-copy small{color:rgba(255,255,255,.82);font-size:12px}
+.cb-chat-cta-arrow{flex:0 0 auto;margin-left:6px;transition:transform .2s ease}
+.cb-markdown a.cb-chat-cta:hover .cb-chat-cta-arrow{transform:translateX(3px)}
+
+/* ---------- Claude-style conversation (same colors, new layout) ---------- */
+.cb-messages{width:min(760px,100%);padding:36px 22px 56px}
+.cb-message-row{margin-bottom:26px}
+/* Assistant: full-width serif text, no avatar column. */
+.cb-message-row.assistant .cb-avatar{display:none}
+.cb-message-row.assistant{gap:0}
+.cb-message-row.assistant .cb-message{padding:0}
+.cb-markdown{font-size:17px;line-height:1.7;letter-spacing:0}
+.cb-markdown p{margin:0 0 14px;line-height:1.7}
+.cb-markdown h1,.cb-markdown h2,.cb-markdown h3{font-weight:600}
+.cb-markdown h1{border-bottom:0;padding-bottom:0}
+/* User: soft rounded bubble on the right. */
+.cb-message.user{max-width:min(80%,600px);padding:10px 18px;border-radius:20px;font-size:16.5px;line-height:1.55}
+.cb-message.user p{margin:0}
+/* Quiet action icons under each reply. */
+.cb-message-actions{margin-top:6px;gap:2px}
+/* Composer: one soft rounded card. */
+.cb-composer{border-radius:26px}
+.cb-composer textarea{font-size:16.5px}
+
+/* ---------- Thinking: spinning sparkle + shimmering word ---------- */
+.cb-response-loader{gap:10px;padding:4px 0}
+.cb-thinking-spark{flex:0 0 auto;color:#7156cc;transform-origin:center;animation:cbSparkSpin 2.4s cubic-bezier(.45,0,.25,1) infinite,cbSparkGlow 1.6s ease-in-out infinite}
+@keyframes cbSparkSpin{0%{transform:rotate(0) scale(1)}50%{transform:rotate(180deg) scale(.82)}100%{transform:rotate(360deg) scale(1)}}
+@keyframes cbSparkGlow{0%,100%{filter:drop-shadow(0 0 0 rgba(113,86,204,0))}50%{filter:drop-shadow(0 0 6px rgba(113,86,204,.45))}}
+.cb-thinking-text{font-size:17px;font-weight:500}
+@media (prefers-reduced-motion:reduce){.cb-thinking-spark{animation:none}}
+@media (max-width:640px){.cb-markdown{font-size:16px}.cb-message.user{font-size:15.5px;max-width:88%}}
+
+/* ======================================================================
+   Chat UX polish (final pass). Colors unchanged; layout, rhythm and
+   interaction only.
+   ====================================================================== */
+
+/* Frame: clean header, centered reading column */
+.cb-main{background:#fff}
+.cb-header{position:relative;z-index:3;height:60px;padding:10px 22px;border-bottom:1px solid rgba(226,232,240,.8);background:rgba(255,255,255,.86);-webkit-backdrop-filter:saturate(1.4) blur(10px);backdrop-filter:saturate(1.4) blur(10px)}
+.cb-header strong{font-size:15.5px;font-weight:700;letter-spacing:-.01em}
+.cb-header span{margin-top:2px;font-size:12px;font-weight:500;color:#7b8497}
+.cb-scroll{scroll-padding-bottom:140px}
+.cb-messages{width:min(740px,100%);padding:30px 22px 40px}
+
+/* Rhythm: a new turn gets more air than a continuation */
+.cb-message-row{margin-bottom:8px;animation:cbRise .28s cubic-bezier(.22,.8,.3,1) both}
+.cb-message-row.user{margin-top:26px;margin-bottom:14px}
+.cb-message-row.user:first-child{margin-top:0}
+.cb-message-row.assistant{margin-bottom:6px}
+
+/* User bubble: compact, soft, right aligned */
+.cb-message.user{max-width:min(82%,560px);padding:10px 16px;border-radius:20px 20px 6px 20px;font-size:15.5px;line-height:1.5;box-shadow:0 1px 2px rgba(86,62,150,.06)}
+.cb-message.user p{margin:0;white-space:pre-wrap;overflow-wrap:anywhere}
+
+/* Assistant: open text on the page, comfortable measure */
+.cb-markdown{max-width:66ch;font-size:16px;line-height:1.72}
+.cb-markdown>*:first-child{margin-top:0}
+.cb-markdown>p:last-of-type{margin-bottom:6px}
+.cb-markdown strong{font-weight:650;color:#0f172a}
+.cb-markdown a{text-underline-offset:3px;text-decoration-thickness:1px}
+.cb-markdown blockquote{margin:12px 0;padding:2px 0 2px 14px;border-left:3px solid #e2d9fb;color:#475569}
+.cb-markdown code:not(pre code){padding:2px 6px;border-radius:6px;background:#f3f0fc;color:#5b43d6;font-size:.88em}
+.cb-markdown hr{margin:18px 0;border:0;border-top:1px solid #edf0f4}
+
+/* Reply actions: small, quiet, brighter on hover */
+.cb-message-actions{display:flex;align-items:center;gap:2px;margin-top:8px;opacity:.55;transition:opacity .18s ease}
+.cb-message-row.assistant:hover .cb-message-actions,.cb-message-actions:focus-within{opacity:1}
+.cb-copy-button{min-height:30px;padding:0 9px;border-radius:9px;border:0;background:transparent;color:#6b7385;font-size:12.5px;font-weight:600;transition:background .15s ease,color .15s ease}
+.cb-copy-button:hover{background:#f3f0fc;color:#5b43d6}
+.cb-copy-button span{display:none}
+.cb-copy-button:hover span,.cb-copy-button:focus-visible span{display:inline;margin-left:6px}
+.cb-like-button.is-liked{color:#5b43d6}
+
+/* Thinking: sparkle + rotating phrase, calm */
+.cb-response-loader{padding:6px 0}
+.cb-thinking-text{font-size:16px;font-weight:500}
+.cb-thinking-note{margin-left:2px}
+
+/* Empty state: roomy, confident */
+.cb-hero-welcome{padding-top:clamp(28px,9vh,96px)}
+.cb-hero-card{border-radius:16px}
+
+/* Composer: floating card, calm focus ring, obvious send */
+.cb-composer-shell{width:min(740px,100%);padding:10px 22px calc(14px + env(safe-area-inset-bottom));background:linear-gradient(180deg,rgba(255,255,255,0),#fff 38%)}
+.cb-composer{align-items:flex-end;gap:6px;padding:8px 8px 8px 18px;border:1px solid #e2e6f3;border-radius:26px;background:#fff;box-shadow:0 1px 2px rgba(15,23,42,.04),0 10px 30px rgba(86,62,150,.08);transition:border-color .2s ease,box-shadow .2s ease}
+.cb-composer:focus-within{border-color:#b9a8f0;box-shadow:0 0 0 4px rgba(124,107,214,.12),0 10px 30px rgba(86,62,150,.1)}
+.cb-composer textarea{flex:1;min-height:40px;padding:9px 2px;font-size:16px;line-height:1.5;color:#171c28}
+.cb-composer textarea::placeholder{color:#9aa1b2}
+.cb-send{flex:0 0 auto;width:40px;height:40px;border-radius:50%}
+.cb-send:disabled{opacity:.45}
+.cb-helper{justify-content:center;gap:14px;padding-top:8px;color:#9aa4b2;font-size:11px}
+.cb-helper span:last-child{display:inline}
+
+/* "Latest" pill sits above the composer */
+.cb-jump{bottom:calc(112px + env(safe-area-inset-bottom));box-shadow:0 6px 20px rgba(86,62,150,.16)}
+
+/* Mobile */
+@media (max-width:640px){
+  .cb-header{height:54px;padding:8px 14px}
+  .cb-messages{padding:20px 14px 28px}
+  .cb-message.user{max-width:88%;font-size:15px}
+  .cb-markdown{font-size:15.5px}
+  .cb-composer-shell{padding:8px 12px calc(10px + env(safe-area-inset-bottom))}
+  .cb-composer{padding:6px 6px 6px 14px;border-radius:22px}
+  .cb-helper span:last-child{display:none}
+  .cb-message-actions{opacity:1}
+}
+@media (prefers-reduced-motion:reduce){.cb-message-row{animation:none}}
+
+/* ---- Fix: reply action icons (no vertical text, no hover label) ---- */
+.cb-message-actions{display:flex;flex-wrap:nowrap;align-items:center;gap:4px;margin-top:6px;padding-top:0;border-top:0}
+.cb-message-actions .cb-copy-button,
+.cb-message-actions .cb-like-button{display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;width:32px;min-width:32px;height:32px;min-height:32px;padding:0;border:0;border-radius:9px;background:transparent;color:#7b8497;white-space:nowrap;box-shadow:none}
+.cb-message-actions .cb-copy-button span{display:none!important}
+.cb-message-actions .cb-copy-button:hover{background:#f3f0fc;color:#5b43d6;box-shadow:none}
+.cb-message-actions .cb-like-button.is-liked{background:#f3f0fc;color:#5b43d6;border:0}
+.cb-message-actions .cb-copy-button svg{width:15px;height:15px}
+
+/* ---- Fix: replies never overflow the column ---- */
+.cb-message-row.assistant,.cb-message-row.assistant .cb-message,.cb-markdown{min-width:0;max-width:100%}
+.cb-markdown{width:100%;overflow-wrap:anywhere;word-break:normal}
+
+/* ---- Agent icon back beside every reply ---- */
+.cb-message-row.assistant{gap:14px;align-items:flex-start}
+.cb-message-row.assistant .cb-avatar{display:grid;position:relative;flex:0 0 auto;width:32px;height:32px;margin-top:2px;border-radius:11px}
+.cb-message-row.assistant .cb-message{flex:1;min-width:0;padding-top:4px}
+@media (max-width:640px){.cb-message-row.assistant{gap:10px}.cb-message-row.assistant .cb-avatar{width:28px;height:28px;border-radius:10px}}
+
+/* ---- While generating: icon pulses with a soft ring, dots ripple ---- */
+.cb-avatar.is-working{background:linear-gradient(145deg,#e6e0ff,#dfeaff);box-shadow:inset 0 0 0 1px rgba(113,86,204,.2)}
+.cb-avatar.is-working::after{content:"";position:absolute;inset:-4px;border-radius:15px;border:2px solid rgba(124,107,214,.35);animation:cbAvatarRing 1.5s ease-out infinite;pointer-events:none}
+@keyframes cbAvatarRing{0%{transform:scale(.85);opacity:.9}100%{transform:scale(1.3);opacity:0}}
+.cb-response-loader{display:inline-flex;align-items:center;gap:8px;padding:6px 0}
+.cb-thinking-dots{display:inline-flex;align-items:center;gap:4px}
+.cb-thinking-dots i{width:5px;height:5px;border-radius:50%;background:#7c6bd6;animation:cbDot 1.2s ease-in-out infinite}
+.cb-thinking-dots i:nth-child(2){animation-delay:.16s}
+.cb-thinking-dots i:nth-child(3){animation-delay:.32s}
+@keyframes cbDot{0%,70%,100%{transform:translateY(0);opacity:.35}35%{transform:translateY(-4px);opacity:1}}
+.cb-stream-caret{display:inline-block;vertical-align:middle;width:8px;height:8px;margin-left:5px;border-radius:50%;background:#7c6bd6;box-shadow:0 0 0 4px rgba(124,107,214,.16);animation:cbCaret 1s ease-in-out infinite}
+@keyframes cbCaret{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.45;transform:scale(.8)}}
+@media (prefers-reduced-motion:reduce){.cb-avatar.is-working::after,.cb-thinking-dots i,.cb-stream-caret{animation:none}}
+
+/* ---- More space between your message and the agent reply (and the next turn) ---- */
+.cb-message-row.user{margin-top:36px;margin-bottom:28px}
+.cb-message-row.user:first-child{margin-top:0}
+.cb-message-row.assistant{margin-bottom:12px}
+.cb-message-row.assistant + .cb-message-row.user{margin-top:44px}
+@media (max-width:640px){
+  .cb-message-row.user{margin-top:28px;margin-bottom:22px}
+  .cb-message-row.assistant + .cb-message-row.user{margin-top:34px}
+}
+
+/* ---------- Voice input ---------- */
+.cb-mic{flex:0 0 auto;display:grid;place-items:center;position:relative;width:40px;height:40px;border:0;border-radius:50%;background:transparent;color:#6b7385;cursor:pointer;transition:background .18s ease,color .18s ease,transform .18s ease}
+.cb-mic:hover:not(:disabled){background:#f3f0fc;color:#5b43d6}
+.cb-mic:active:not(:disabled){transform:scale(.94)}
+.cb-mic:disabled{opacity:.4;cursor:default}
+.cb-mic.is-listening{background:#ef4444;color:#fff}
+.cb-mic.is-listening::after{content:"";position:absolute;inset:-5px;border-radius:50%;border:2px solid rgba(239,68,68,.45);animation:cbMicRing 1.4s ease-out infinite;pointer-events:none}
+@keyframes cbMicRing{0%{transform:scale(.85);opacity:.9}100%{transform:scale(1.35);opacity:0}}
+.cb-composer.is-listening{border-color:#f3a5a5;box-shadow:0 0 0 4px rgba(239,68,68,.1),0 10px 30px rgba(86,62,150,.08)}
+.cb-voice-status{display:flex;align-items:center;gap:10px;margin:0 4px 8px;padding:8px 14px;border-radius:14px;background:#fef2f2;color:#b42318;font-size:13px;font-weight:600}
+.cb-voice-status.is-error{background:#f8fafc;color:#64748b;font-weight:500}
+.cb-voice-bars{display:inline-flex;align-items:center;gap:3px;height:16px}
+.cb-voice-bars i{display:block;width:3px;height:100%;border-radius:2px;background:#ef4444;transform-origin:center;animation:cbVoiceBar 1s ease-in-out infinite}
+.cb-voice-bars i:nth-child(2){animation-delay:.12s}.cb-voice-bars i:nth-child(3){animation-delay:.24s}.cb-voice-bars i:nth-child(4){animation-delay:.36s}.cb-voice-bars i:nth-child(5){animation-delay:.48s}
+@keyframes cbVoiceBar{0%,100%{transform:scaleY(.3)}50%{transform:scaleY(1)}}
+@media (prefers-reduced-motion:reduce){.cb-mic.is-listening::after,.cb-voice-bars i{animation:none}}
+@media (max-width:640px){.cb-mic{width:38px;height:38px}.cb-voice-status{font-size:12px}}

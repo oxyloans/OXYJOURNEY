@@ -247,7 +247,7 @@ function AdminDashboardMain({ onLogout }: { onLogout: () => void }) {
                 alt="OXY Journeys"
                 className="ad-brand-logo"
                 onError={(e) => {
-                  e.currentTarget.src = "https://i.ibb.co/XxJJRXx5/jun-logo.png";
+                  e.currentTarget.src = "/favicon.svg";
                 }}
               />
             </div>
