@@ -209,6 +209,89 @@ export async function requestJourneyOtp(args: {
   );
 }
 
+
+export type BusinessCardCandidate = {
+  candidateId: string;
+  displayName: string;
+  classification?: string | null;
+};
+
+export type BusinessCardResult = {
+  sessionId?: string | null;
+  extractedText?: string | null;
+  candidates?: BusinessCardCandidate[] | null;
+  message?: string | null;
+};
+
+/** Connects the user with one matched member; the reply carries the chat URL. */
+export async function connectBusinessCardCandidate(args: {
+  sessionId: string;
+  candidateId: string;
+  accessToken?: string | null;
+}): Promise<VibeCodeMessageResponse> {
+  const response = await fetch(`${API_CONFIG.businessCard}/ai-service/vibe-code/candidates/select`, {
+    method: "POST",
+    credentials: "omit",
+    headers: {
+      "Content-Type": "application/json",
+      Accept: "application/json",
+      ...(args.accessToken ? { Authorization: `Bearer ${args.accessToken}` } : {}),
+    },
+    body: JSON.stringify({ sessionId: args.sessionId, candidateId: args.candidateId }),
+  });
+  return parseJson<VibeCodeMessageResponse>(response);
+}
+
+/** Sends a student's details (instead of a card) to get matches from the network. */
+export async function submitStudentDetails(args: {
+  userId: string;
+  fullName: string;
+  email: string;
+  role: string;
+  responsibilities: string;
+  accessToken?: string | null;
+}): Promise<BusinessCardResult> {
+  const { accessToken, ...body } = args;
+  const response = await fetch(`${API_CONFIG.businessCard}/ai-service/vibe-code/process-student`, {
+    method: "POST",
+    credentials: "omit",
+    headers: {
+      "Content-Type": "application/json",
+      Accept: "application/json",
+      ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
+    },
+    body: JSON.stringify(body),
+  });
+  return parseJson<BusinessCardResult>(response);
+}
+
+/** Saved as `type` on the uploaded card so uploads from this app can be told apart. */
+const BUSINESS_CARD_TYPE = "oxyjourneys";
+
+/** Uploads a business card (image or PDF) for processing. Sent as multipart/form-data. */
+export async function uploadBusinessCard(args: {
+  userId: string;
+  file: File;
+  accessToken?: string | null;
+}): Promise<BusinessCardResult> {
+  const form = new FormData();
+  form.append("userId", args.userId);
+  form.append("file", args.file);
+  form.append("type", BUSINESS_CARD_TYPE);
+
+  // No Content-Type header: the browser must set it so the multipart boundary is included.
+  const response = await fetch(`${API_CONFIG.businessCard}/ai-service/vibe-code/process-business-card`, {
+    method: "POST",
+    credentials: "omit",
+    headers: {
+      Accept: "application/json",
+      ...(args.accessToken ? { Authorization: `Bearer ${args.accessToken}` } : {}),
+    },
+    body: form,
+  });
+  return parseJson<BusinessCardResult>(response);
+}
+
 export async function verifyJourneyOtp(args: {
   phoneNumber: string;
   countryCode: string;

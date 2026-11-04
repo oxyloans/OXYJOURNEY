@@ -1,8 +1,6 @@
 import { useEffect, useRef, useState, type FormEvent, type KeyboardEvent, type MouseEvent, type ReactNode } from "react";
-import { classificationOpeningMessage, LOGO, TOP_CLASSIFICATIONS } from "../data/journeyData";
-import { getJourneyIdentity } from "../services/vibeCodeApi";
 import Icon3D from "./Icon3D";
-import JourneyLoginModal from "./JourneyLoginModal";
+import HomeHeader, { TAGLINE } from "./HomeHeader";
 import "./HomeLanding.css";
 
 export type ChatStart = {
@@ -18,31 +16,19 @@ export type ChatStart = {
 
 type HomeLandingProps = {
   onStart: (start?: ChatStart) => void;
+  onBusinessCard: () => void;
 };
 
-export const TAGLINE = "Every journey, one partner";
+export { TAGLINE };
 
 type Prefill = { text: string; kind: "life" | "profession"; stageId?: string; classification?: string };
 
-const professionPrefill = (name: string, text?: string): Prefill => {
-  const item = TOP_CLASSIFICATIONS.find(entry => entry.name === name)!;
-  return { text: text ?? classificationOpeningMessage(item), kind: "profession", classification: item.name };
-};
-
-/**
- * Ready-made messages. Each belongs to one life journey or one profession, so clicking it selects
- * that journey/profession in the chat and sends the message there.
- */
+/** Ready-made messages; each opens its matching life journey or profession and sends the message there. */
 const PREFILLS: Prefill[] = [
   { text: "I want to study abroad", kind: "life", stageId: "youth-career" },
-  professionPrefill("Doctor"),
-  professionPrefill("Doctor", "I need a specialist doctor for a second opinion"),
+  { text: "I am looking for a Doctor", kind: "profession", classification: "Doctor" },
   { text: "I am looking for a home loan", kind: "life", stageId: "work-family" },
-  professionPrefill("Chartered Accountant"),
-  professionPrefill("Chartered Accountant", "I need a CA to file my income tax returns"),
-  { text: "Help me plan savings and investments", kind: "life", stageId: "wealth-security" },
-  professionPrefill("Advocate"),
-  professionPrefill("Advocate", "I need an advocate for a property dispute"),
+  { text: "I need a CA to file my income tax returns", kind: "profession", classification: "Chartered Accountant" },
 ];
 
 /** Card that tilts toward the pointer. */
@@ -65,12 +51,9 @@ function TiltCard({ className, onClick, children }: { className: string; onClick
   );
 }
 
-export default function HomeLanding({ onStart }: HomeLandingProps) {
+export default function HomeLanding({ onStart, onBusinessCard }: HomeLandingProps) {
   const [prompt, setPrompt] = useState("");
-  const [loginOpen, setLoginOpen] = useState(false);
-  const [identity, setIdentity] = useState(() => getJourneyIdentity());
   const inputRef = useRef<HTMLTextAreaElement>(null);
-  const accountName = (localStorage.getItem("userName") || "").trim() || "My account";
 
   useEffect(() => {
     const el = inputRef.current;
@@ -94,31 +77,7 @@ export default function HomeLanding({ onStart }: HomeLandingProps) {
 
   return (
     <div className="hl-page">
-      <header className="hl-header">
-        <div className="hl-shell hl-header-inner">
-          <a className="hl-brand" href="/" aria-label="OXY Journeys home">
-            <img src={LOGO} alt="OXY Journeys" />
-            <span className="hl-brand-tagline">{TAGLINE}</span>
-          </a>
-
-          <nav className="hl-nav" aria-label="Primary">
-            <button type="button" className="hl-assistant" onClick={() => onStart()}>
-              <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" aria-hidden="true"><path d="m12 3 2.5 6.5L21 12l-6.5 2.5L12 21l-2.5-6.5L3 12l6.5-2.5L12 3Z" /></svg>
-              AI Dashboard
-            </button>
-            <button
-              type="button"
-              className={`hl-account ${identity ? "is-signed-in" : ""}`}
-              onClick={() => { if (!identity) setLoginOpen(true); }}
-              aria-label={identity ? `Signed in as ${accountName}` : "Account"}
-              title={identity ? accountName : "Account"}
-            >
-              <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" aria-hidden="true"><circle cx="12" cy="8" r="3.6" /><path d="M5 20c.8-3.6 3.7-5.4 7-5.4s6.2 1.8 7 5.4" /></svg>
-              {identity && <span>{accountName}</span>}
-            </button>
-          </nav>
-        </div>
-      </header>
+      <HomeHeader onAssistant={() => onStart()} />
 
       <main className="hl-main">
         <section className="hl-hero hl-shell">
@@ -191,6 +150,18 @@ export default function HomeLanding({ onStart }: HomeLandingProps) {
               <strong>Professions</strong>
               <span>Find the right people</span>
             </TiltCard>
+
+            <TiltCard className="hl-card hl-card-bc" onClick={onBusinessCard}>
+              <span className="hl-card-icon">
+                <Icon3D palette="blue">
+                  <rect x="3" y="5" width="18" height="14" rx="2.5" stroke="currentColor" />
+                  <circle cx="9" cy="11" r="1.8" stroke="currentColor" />
+                  <path d="M6.5 16c.4-1.4 1.4-2.1 2.5-2.1s2.1.7 2.5 2.1M14 10h4M14 13.5h3" stroke="currentColor" />
+                </Icon3D>
+              </span>
+              <strong>Business Card</strong>
+              <span>Upload &amp; get connected</span>
+            </TiltCard>
           </div>
         </section>
       </main>
@@ -198,13 +169,6 @@ export default function HomeLanding({ onStart }: HomeLandingProps) {
       <footer className="hl-footer">
         <p>{TAGLINE}.</p>
       </footer>
-
-      <JourneyLoginModal
-        open={loginOpen}
-        sessionId=""
-        onClose={() => setLoginOpen(false)}
-        onSuccess={() => { setIdentity(getJourneyIdentity()); setLoginOpen(false); }}
-      />
     </div>
   );
 }

@@ -69,10 +69,14 @@ const isUserSide = (sender?: string | null) => ["USER", "CUSTOMER"].includes((se
 // Messages we just sent keep their client id, so the poll that returns them replaces the optimistic copy.
 const sentLog: { sessionId: string; clientMessageId: string; content: string }[] = [];
 
+/** Business card sessions (BIZCARD-…) are created on the local ai-service, so their chat is served there too. */
+const rootFor = (sessionId: string) => (sessionId.startsWith("BIZCARD-") ? API_CONFIG.businessCard : STREAM_API_ROOT);
+
 async function chatFetch(path: string, signal?: AbortSignal, body?: unknown) {
   const token = getChatToken();
+  const sessionId = decodeURIComponent(/\/vibe-code\/(?:history\/)?([^/?]+)/.exec(path)?.[1] ?? "");
   // Partners open the shared link without signing in; the token is sent only when the browser has one.
-  const response = await fetch(`${STREAM_API_ROOT}${path}`, {
+  const response = await fetch(`${rootFor(sessionId)}${path}`, {
     method: body ? "POST" : "GET",
     signal: signal ? AbortSignal.any([signal, AbortSignal.timeout(15000)]) : AbortSignal.timeout(15000),
     credentials: "omit",
@@ -145,7 +149,7 @@ function toShared(id: string, item: any, index = 0): SharedMessage | null {
  */
 export function subscribeSharedMessages(id: string, handlers: { onMessage: (message: SharedMessage) => void; onOpen?: () => void; onError?: () => void }) {
   if (typeof EventSource === "undefined") return () => {};
-  const source = new EventSource(`${STREAM_API_ROOT}/ai-service/vibe-code/${encodeURIComponent(id)}/stream`);
+  const source = new EventSource(`${rootFor(id)}/ai-service/vibe-code/${encodeURIComponent(id)}/stream`);
   source.addEventListener("connected", () => handlers.onOpen?.());
   source.addEventListener("message", event => {
     try {

@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import OxyJourneysLanding from "./components/OxyJourneysLanding";
 import { sendVibeCodeMessage, VIBE_CODE_STORAGE } from "./services/vibeCodeApi";
 import HomeLanding from "./components/HomeLanding";
+import BusinessCardPage from "./components/BusinessCardPage";
 import SessionChatPage from "./components/SessionChatPage";
 
 import PartnerChatsDashboard from "./components/PartnerChatsDashboard";
@@ -479,7 +480,13 @@ function App() {
     return <SessionChatPage key={sessionId} sessionId={sessionId} />;
   }
   if (path.startsWith("/oxy-journey/chat")) return <SessionChatPage sessionId="" />;
-  if (path === "/" || path === "") return <HomeLanding onStart={openChat} />;
+  function goTo(to) {
+    window.history.pushState({}, "", to);
+    setPath(to);
+    window.scrollTo({ top: 0 });
+  }
+  if (/^\/business-card\/?$/.test(path)) return <BusinessCardPage onBack={() => goTo("/")} onAssistant={() => openChat()} />;
+  if (path === "/" || path === "") return <HomeLanding onStart={openChat} onBusinessCard={() => goTo("/business-card")} />;
   return <JourneyHome start={chatStart} />;
 }
 
