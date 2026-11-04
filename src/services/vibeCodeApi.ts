@@ -280,7 +280,7 @@ export async function uploadBusinessCard(args: {
   form.append("type", BUSINESS_CARD_TYPE);
 
   // No Content-Type header: the browser must set it so the multipart boundary is included.
-  const response = await fetch(`${API_CONFIG.businessCard}/ai-service/vibe-code/process-business-card`, {
+  const response = await fetch(`${API_CONFIG.businessCard}/ai-service/vibe-code/process-business-card/journey`, {
     method: "POST",
     credentials: "omit",
     headers: {
