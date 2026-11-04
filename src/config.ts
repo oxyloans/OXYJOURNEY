@@ -15,7 +15,7 @@ export const API_CONFIG = {
   /** Login (OTP) API root: always the live backend. */
   login: LOGIN_API_BASE_URL,
   /** Business card upload root (local ai-service on port 9040). */
-  businessCard: "http://localhost:9040/api",
+  businessCard: API_BASE_URL,
   /** Journey chat API root. */
   journeyChat: `${API_BASE_URL}/journey-chat`,
 };
