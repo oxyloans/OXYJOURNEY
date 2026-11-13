@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { createConversationForSession, getChatToken, listSharedSessions, SessionChatError, type SessionSummary } from "../services/sessionChatApi";
+import { createConversationForSession, getChatToken, listSharedSessions, setSessionRoleOverride, SessionChatError, type SessionSummary } from "../services/sessionChatApi";
 import SessionChatPage from "./SessionChatPage";
 import JourneyLoginModal from "./JourneyLoginModal";
 import { LOGO } from "../data/journeyData";
@@ -56,6 +56,7 @@ export default function PartnerChatsDashboard() {
     catch (err) { setError(err instanceof Error ? err.message : "Unable to start a conversation."); }
     finally { setCreating(false); }
   }
+  useEffect(() => { if (selected) setSessionRoleOverride(selected, "PARTNER"); }, [selected]);
   return <div className={`pc-dashboard ${selected ? "pc-has-selection" : ""}`}>
     <header className="pc-header"><a href="/" className="pc-brand"><img src={LOGO} alt="OXY Journeys" /></a><div><span className="pc-label">YOUR CONNECTIONS</span><h1>Partner chats</h1></div><a href="/">Explore journeys ↗</a></header>
     <main className="pc-layout">
@@ -73,7 +74,7 @@ export default function PartnerChatsDashboard() {
           {hasMore && <button className="pc-more" disabled={loading} onClick={() => void more()}>{loading ? "Loading…" : "Load more chats"}</button>}
         </div>}
       </aside>
-      <section className="pc-detail" aria-label="Selected conversation">{selected ? <><div className="pc-detail-tools"><button onClick={() => setSelected("")} className="pc-back">← Chats</button><a href={`/oxy-journey/chat/${encodeURIComponent(selected)}/partner`}>Open chat ↗</a><button onClick={() => void newConversation()} disabled={creating}>{creating ? "Starting…" : "Start another conversation"}</button></div><SessionChatPage key={selected} sessionId={selected} embedded /></> : <div className="pc-welcome"><span className="pc-welcome-icon">↗</span><span className="pc-label">ROOM FOR YOUR NEXT STEP</span><h2>One connection.<br />Many journeys.</h2><p>Choose a conversation to pick up where you left off. Each conversation keeps its own messages, so you can explore a new journey with the same person.</p><span className="pc-welcome-note">Your people. Your journeys. Your conversations.</span></div>}</section>
+      <section className="pc-detail" aria-label="Selected conversation">{selected ? <><div className="pc-detail-tools"><button onClick={() => setSelected("")} className="pc-back">← Chats</button><a href={`/oxy-journey/chat/${encodeURIComponent(selected)}/partner?role=partner`}>Open chat ↗</a><button onClick={() => void newConversation()} disabled={creating}>{creating ? "Starting…" : "Start another conversation"}</button></div><SessionChatPage key={selected} sessionId={selected} embedded roleOverride="PARTNER" /></> : <div className="pc-welcome"><span className="pc-welcome-icon">↗</span><span className="pc-label">ROOM FOR YOUR NEXT STEP</span><h2>One connection.<br />Many journeys.</h2><p>Choose a conversation to pick up where you left off. Each conversation keeps its own messages, so you can explore a new journey with the same person.</p><span className="pc-welcome-note">Your people. Your journeys. Your conversations.</span></div>}</section>
     </main>
     <JourneyLoginModal sessionId="" open={loginOpen} onClose={() => setLoginOpen(false)} onSuccess={auth => { if (!auth.accessToken) throw new Error("Login did not return an access token."); setLoginOpen(false); setAuthenticated(true); }} />
   </div>;

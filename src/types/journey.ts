@@ -58,7 +58,7 @@ export type LandingProps = {
   initialClassification?: string;
   /** Sent automatically as the first message once the chat is ready. */
   initialPrompt?: string;
-  onSearch?: (query: string, context?: ChatContext, sessionId?: string | null, streamOptions?: { onChunk?: (chunk: string) => void; onReplace?: (text: string) => void; onMetadata?: (metadata: { sessionId?: string | null; loginRequired?: boolean }) => void; signal?: AbortSignal }) => Promise<{ reply?: string | null; sessionId?: string | null; loginRequired?: boolean; chatWindowUrl?: string | null; status?: boolean }>;
+  onSearch?: (query: string, context?: ChatContext, sessionId?: string | null, streamOptions?: { onChunk?: (chunk: string) => void; onReplace?: (text: string) => void; onMetadata?: (metadata: { sessionId?: string | null; loginRequired?: boolean; chatWindowUrl?: string | null }) => void; signal?: AbortSignal }) => Promise<{ reply?: string | null; sessionId?: string | null; loginRequired?: boolean; chatWindowUrl?: string | null; status?: boolean }>;
   onLoadJourneys?: (request: JourneyLoadRequest) => Promise<JourneyOption[]>;
   profile?: ProfileInfo;
   onProfileClick?: () => void;

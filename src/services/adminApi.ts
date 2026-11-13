@@ -38,6 +38,17 @@ export interface AdminMessage {
   createdAt: AdminDate;
 }
 
+export interface AdminPresence {
+  sessionId: string;
+  userName: string | null;
+  partnerName: string | null;
+  chatStatus: string | null;
+  partnerStatus: string | null;
+  userStatus: string | null;
+  partnerLastSeenAt: AdminDate;
+  userLastSeenAt: AdminDate;
+}
+
 const DIRECT_API_ROOT = API_CONFIG.admin;
 const PROXY_API_ROOT = "/admin-api";
 
@@ -427,6 +438,24 @@ export async function fetchAllAdminMessages(signal?: AbortSignal) {
   return fetchAdminEndpoint<AdminMessage[]>(
     "/ai-service/vibe-code/admin/all",
     SAMPLE_ALL_MESSAGES,
+    signal
+  );
+}
+
+// GET /api/ai-service/vibe-code/admin/active — sessions whose partner heartbeat is active.
+export async function fetchActivePartnerPresence(signal?: AbortSignal) {
+  return fetchAdminEndpoint<AdminPresence[]>(
+    "/ai-service/vibe-code/admin/active",
+    [],
+    signal
+  );
+}
+
+// GET /api/ai-service/vibe-code/admin/presence — every matched chat presence.
+export async function fetchAllPartnerPresence(signal?: AbortSignal) {
+  return fetchAdminEndpoint<AdminPresence[]>(
+    "/ai-service/vibe-code/admin/presence",
+    [],
     signal
   );
 }

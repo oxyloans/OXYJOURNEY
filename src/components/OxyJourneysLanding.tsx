@@ -21,8 +21,9 @@ import type {
 import ChatBox, { type ChatBoxAdapter, type ChatBoxConversation, type ChatBoxMessage } from "./ChatBox";
 import JourneySidebar from "./JourneySidebar";
 import MobileJourneyHeader from "./MobileJourneyHeader";
+import PageNavigation from "./PageNavigation";
 import JourneyLoginModal from "./JourneyLoginModal";
-import { markSessionOwner } from "../services/sessionChatApi";
+import { getChatPresence, markSessionOwner } from "../services/sessionChatApi";
 import {
   getVibeCodeHistory,
   getUserSessions,
@@ -55,6 +56,21 @@ function uniqueByTitle(journeys: JourneyOption[]) {
   });
 }
 
+function getChatWindowUrl(value?: string | null): string | null {
+  if (!value?.trim()) return null;
+  try {
+    const url = new URL(value, window.location.origin);
+    if (!["http:", "https:"].includes(url.protocol) || !/^\/oxy-journey\/chat\/[^/]+(?:\/(?:user|partner))?\/?$/i.test(url.pathname)) return null;
+    return url.href;
+  } catch {
+    return null;
+  }
+}
+
+function chatWindowButtonReply(url: string): string {
+  return `[Open chat window](${url})`;
+}
+
 const NAME_STOP_WORDS = new Set([
   "yes", "no", "ok", "okay", "hi", "hello", "hey", "i", "my", "me", "need", "want", "looking", "loan", "home",
   "car", "personal", "business", "gold", "study", "abroad", "lakhs", "lakh", "crore", "month", "months", "year",
@@ -65,7 +81,7 @@ const NAME_STOP_WORDS = new Set([
 // "Rishi and looking for cse" -> "Rishi", "my name is rishi kumar" -> "Rishi Kumar".
 function extractName(text: string): string {
   let t = text.trim().replace(/^(hi|hello|hey)[,!\s]+/i, "");
-  const intro = /(?:my name is|name is|i am|i'm|im|this is|it's|call me)\s+(.+)/i.exec(t);
+  const intro = /^(?:my name is|name is|i am|i'm|im|this is|it's|call me)\s+(.+)/i.exec(t);
   if (intro) t = intro[1];
   const lead = t.split(/\s+(?:and|&|looking|need|want|from|in|for)\b|[,.\-–—:;!?\n]/i)[0].trim();
   const words = lead.split(/\s+/).filter(Boolean);
@@ -367,22 +383,24 @@ export default function OxyJourneysLanding({
   // When the user answers the agent's "May I know your name?", remember that name for the profile.
   // Guests keep it until they log in; logged-in users save it straight away.
   useEffect(() => {
-    let index = -1;
-    for (let i = messages.length - 1; i >= 0; i--) if (messages[i].role === "user") { index = i; break; }
-    if (index < 1) return;
-    const answer = messages[index], question = messages[index - 1];
-    if (question.role !== "assistant" || !/your name/i.test(question.content)) return;
-    if (nameCheckedFor.current === answer.id) return;
-    nameCheckedFor.current = answer.id;
-    const name = extractName(answer.content);
-    if (!name) return;
-    if (loggedIn) {
-      localStorage.setItem("userName", name);
+    // Scan the conversation, not just its last reply: streaming and login can
+    // deliver several messages together after the name answer has been sent.
+    for (let index = messages.length - 1; index >= 1; index--) {
+      const answer = messages[index];
+      if (answer.role !== "user") continue;
+      const question = messages.slice(0, index).reverse().find(message => message.content.trim());
+      if (question?.role !== "assistant" || !/(?:your (?:full |first |good )?name|what (?:should|can) I call you|who am I speaking (?:with|to))/i.test(question.content)) continue;
+      const name = extractName(answer.content);
+      if (!name) continue;
+      const checkedKey = `${sessionId}:${answer.id}:${name}:${loggedIn}`;
+      if (nameCheckedFor.current === checkedKey) return;
+      nameCheckedFor.current = checkedKey;
       setDisplayName(name);
-    } else {
-      sessionStorage.setItem(PENDING_NAME_KEY, name);
+      if (loggedIn) localStorage.setItem("userName", name);
+      else sessionStorage.setItem(PENDING_NAME_KEY, name);
+      return;
     }
-  }, [messages, loggedIn]);
+  }, [messages, loggedIn, sessionId]);
 
   const sidebarProfile = { ...profile, name: loggedIn ? displayName || undefined : undefined };
 
@@ -391,25 +409,32 @@ export default function OxyJourneysLanding({
   useEffect(() => setSavedSessions(readSavedSessions()), [loggedIn]);
 
   // The user's chats with journey partners (sessions that have a matched partner), newest first.
-  const [partnerChats, setPartnerChats] = useState<{ id: string; title: string; partnerName: string }[]>([]);
+  const [partnerChats, setPartnerChats] = useState<{ id: string; title: string; partnerName: string; partnerStatus?: string | null }[]>([]);
   useEffect(() => {
     const userId = (localStorage.getItem("userId") || "").trim();
     if (!loggedIn || !userId) { setPartnerChats([]); return; }
     let cancelled = false;
-    const load = () => getUserSessions(userId)
-      .then(list => {
+    const load = async () => {
+      try {
+        const list = await getUserSessions(userId);
         if (cancelled) return;
-        setPartnerChats(list.filter(item => item.sessionId && item.matchedPersonName?.trim()).map(item => ({
+        const chats = list.filter(item => item.sessionId && item.matchedPersonName?.trim()).map(item => ({
           id: item.sessionId,
           title: item.journeyCategoryValue?.trim() || "Journey chat",
           partnerName: item.matchedPersonName!.trim(),
-        })));
-      })
-      .catch(() => { /* keep the last list */ });
+        }));
+        const withPresence = await Promise.all(chats.map(async chat => {
+          try { return { ...chat, partnerStatus: (await getChatPresence(chat.id)).partnerStatus }; }
+          catch { return { ...chat, partnerStatus: null }; }
+        }));
+        if (!cancelled) setPartnerChats(withPresence);
+      } catch { /* keep the last list */ }
+    };
     void load();
     const onFocus = () => void load();
     window.addEventListener("focus", onFocus);
-    return () => { cancelled = true; window.removeEventListener("focus", onFocus); };
+    const timer = window.setInterval(() => { if (!document.hidden) void load(); }, 30000);
+    return () => { cancelled = true; window.removeEventListener("focus", onFocus); window.clearInterval(timer); };
   }, [loggedIn, sessionId]);
 
   // Remember each chat of the logged-in user once it has a session and a first prompt.
@@ -686,7 +711,9 @@ export default function OxyJourneysLanding({
   }
 
   function beforeSend(message: string) {
-    if (getJourneyIdentity() || guestPromptCount.current < 3) return true;
+    if (getJourneyIdentity()) return true;
+    const journeyRequiresLogin = mode === "platform" || mode === "life-cycle";
+    if (!journeyRequiresLogin && guestPromptCount.current < 3) return true;
     pendingPrompt.current = message;
     setLoginOpen(true);
     return false;
@@ -700,6 +727,7 @@ export default function OxyJourneysLanding({
     const controller = new AbortController();
     streamController.current = controller;
     let streamed = false;
+    let streamedChatWindowUrl: string | null = null;
     const saveSession = (nextSessionId?: string | null) => {
       if (nextSessionId) {
         setSessionId(nextSessionId);
@@ -712,7 +740,10 @@ export default function OxyJourneysLanding({
       const result = await onSearch(query, chatContext || undefined, sessionId || null, {
         signal: controller.signal,
         onChunk: chunk => { streamed = true; onChunk(chunk); },
-        onMetadata: metadata => saveSession(metadata.sessionId),
+        onMetadata: metadata => {
+          saveSession(metadata.sessionId);
+          if (metadata.chatWindowUrl) streamedChatWindowUrl = metadata.chatWindowUrl;
+        },
         onReplace,
       });
       if (!result) throw new Error("Empty response");
@@ -720,7 +751,9 @@ export default function OxyJourneysLanding({
       if (chatContext) sessionStorage.setItem(VIBE_CODE_STORAGE.context, JSON.stringify(chatContext));
       else sessionStorage.removeItem(VIBE_CODE_STORAGE.context);
       // Support an existing nonstreaming adapter without replaying streamed text.
-      if (!streamed && result.reply?.trim()) onChunk(result.reply);
+      if (!streamed && result.reply?.trim()) {
+        onChunk(result.reply);
+      }
       if (result.loginRequired) {
         onChunk(streamed || result.reply ? "" : "Please sign in to continue this conversation.");
         // Remember the unanswered prompt so it is re-sent automatically after login.
@@ -729,7 +762,13 @@ export default function OxyJourneysLanding({
         setLoginOpen(true);
         return;
       }
-      if (!streamed && !result.reply?.trim()) throw new Error("Empty reply");
+      const chatWindowUrl = getChatWindowUrl(result.chatWindowUrl) || getChatWindowUrl(streamedChatWindowUrl);
+      if (!streamed && !result.reply?.trim() && !chatWindowUrl) throw new Error("Empty reply");
+      if (chatWindowUrl) {
+        const replyWithButton = chatWindowButtonReply(chatWindowUrl);
+        if (onReplace) onReplace(replyWithButton);
+        else onChunk(replyWithButton);
+      }
       if (guest) {
         guestPromptCount.current += 1;
         sessionStorage.setItem(VIBE_CODE_STORAGE.guestPromptCount, String(guestPromptCount.current));
@@ -972,7 +1011,7 @@ const adapter: ChatBoxAdapter = {
             suggestions: true,
           }}
           sx={{ height: "100%" }}
-          headerAction={<><button type="button" className="oxj-home-partner-button" style={{ marginLeft: 8, cursor: "pointer" }} onClick={resetConversation} disabled={loading} aria-label="Start a new chat"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg>New chat</button></>}
+          headerAction={<div className="journey-header-actions"><PageNavigation page="dashboard" /><button type="button" className="oxj-home-partner-button" onClick={resetConversation} disabled={loading} aria-label="Start a new chat">+ New chat</button></div>}
           headerTitle={chatContext?.title || (mode === "life-cycle" ? (stage?.title || "Birth & Early Life") : mode === "profession" ? "Professions" : "OXY Journeys AI")}
           headerSubtitle={
             chatContext?.subtitle ||

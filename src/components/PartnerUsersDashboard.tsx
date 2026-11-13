@@ -310,7 +310,7 @@ export default function PartnerUsersDashboard() {
             <>
               <div className="pud-detail-tools">
                 <button className="pud-back" onClick={() => setSelected(null)}>← Users</button>
-                <a className="pud-live-btn" href={`/oxy-journey/chat/${encodeURIComponent(selected.sessionId)}/partner`}>
+                <a className="pud-live-btn" href={`/oxy-journey/chat/${encodeURIComponent(selected.sessionId)}/partner?role=partner`}>
                   <span className="pud-live-dot" /> Open live chat <span aria-hidden="true">↗</span>
                 </a>
               </div>

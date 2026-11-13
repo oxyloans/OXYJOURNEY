@@ -42,7 +42,7 @@ type JourneySidebarProps = {
   sessionId?: string;
   savedSessions?: { id: string; title: string }[];
   /** Chats the user has with journey partners; each opens the shared live chat. */
-  partnerChats?: { id: string; title: string; partnerName: string }[];
+  partnerChats?: { id: string; title: string; partnerName: string; partnerStatus?: string | null }[];
   onSelectSession?: (sessionId: string) => void;
   /** The profession (classification) the current chat is about, if any. */
   activeProfession?: string;
@@ -775,7 +775,7 @@ export default function JourneySidebar({
                   <span className="oxj-history-bubble">💬</span>
                   <span className="oxj-session-history-copy">
                     <strong>{item.partnerName}</strong>
-                    <small>{item.title}</small>
+                    <small><i className={`oxj-partner-presence-dot ${item.partnerStatus === "ACTIVE" ? "is-active" : "is-inactive"}`} />{item.partnerStatus === "ACTIVE" ? "Active now" : "Inactive"} · {item.title}</small>
                   </span>
                 </a>
               ))}

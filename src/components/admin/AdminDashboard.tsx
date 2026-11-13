@@ -5,6 +5,7 @@ import {
   fetchCompletedSessions,
   fetchAllSessions,
   fetchAllAdminMessages,
+  fetchAllPartnerPresence,
   formatAdminDate,
   formatAdminTimeAgo,
   getAdminDateTimestamp,
@@ -12,6 +13,7 @@ import {
   adminLogout,
   type AdminSession,
   type AdminMessage,
+  type AdminPresence,
 } from "../../services/adminApi";
 import { LOGO } from "../../data/journeyData";
 import AdminConversations from "./AdminConversations";
@@ -57,6 +59,7 @@ function AdminDashboardMain({ onLogout }: { onLogout: () => void }) {
   const [completedSessions, setCompletedSessions] = useState<AdminSession[]>([]);
   const [allSessions, setAllSessions] = useState<AdminSession[]>([]);
   const [messages, setMessages] = useState<AdminMessage[]>([]);
+  const [activePresence, setActivePresence] = useState<AdminPresence[]>([]);
 
   const [loading, setLoading] = useState(true);
   const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
@@ -80,17 +83,19 @@ function AdminDashboardMain({ onLogout }: { onLogout: () => void }) {
     abortControllerRef.current = controller;
 
     try {
-      const [liveRes, compRes, allRes, msgRes] = await Promise.all([
+      const [liveRes, compRes, allRes, msgRes, presenceRes] = await Promise.all([
         fetchLiveSessions(controller.signal),
         fetchCompletedSessions(controller.signal),
         fetchAllSessions(controller.signal),
         fetchAllAdminMessages(controller.signal),
+        fetchAllPartnerPresence(controller.signal),
       ]);
 
       setLiveSessions(liveRes.data);
       setCompletedSessions(compRes.data);
       setAllSessions(allRes.data);
       setMessages(msgRes.data);
+      setActivePresence(presenceRes.data);
       setLastUpdated(new Date());
     } catch (err: any) {
       if (err.name !== "AbortError") {
@@ -226,6 +231,10 @@ function AdminDashboardMain({ onLogout }: { onLogout: () => void }) {
   const conversationCount = useMemo(
     () => new Set(messages.map((m) => m.sessionId).filter(Boolean)).size,
     [messages]
+  );
+  const activePresenceBySession = useMemo(
+    () => new Map(activePresence.map(item => [item.sessionId, item])),
+    [activePresence]
   );
 
   // Check if any filter is active
@@ -659,6 +668,10 @@ function AdminDashboardMain({ onLogout }: { onLogout: () => void }) {
                             {(s.journeyCategoryValue || s.journeyCategoryType)!.toUpperCase()}
                           </span>
                         )}
+                        {activePresenceBySession.has(s.sessionId) && (() => {
+                          const partnerActive = activePresenceBySession.get(s.sessionId)?.partnerStatus === "ACTIVE";
+                          return <span className={`ad-presence-badge ${partnerActive ? "is-active" : "is-inactive"}`}><span className={partnerActive ? "ad-live-pulse-dot" : "ad-presence-dot"} />Partner {partnerActive ? "active" : "inactive"}</span>;
+                        })()}
                       </div>
 
                       <div className="ad-card-top-right">
@@ -795,6 +808,10 @@ function AdminDashboardMain({ onLogout }: { onLogout: () => void }) {
                               {s.chatStatus === "LIVE" && <span className="ad-live-pulse-dot" />}
                               {s.chatStatus || "ACTIVE"}
                             </span>
+                            {activePresenceBySession.has(s.sessionId) && (() => {
+                              const partnerActive = activePresenceBySession.get(s.sessionId)?.partnerStatus === "ACTIVE";
+                              return <small className={`ad-presence-inline ${partnerActive ? "is-active" : "is-inactive"}`}>Partner {partnerActive ? "active" : "inactive"}</small>;
+                            })()}
                           </td>
 
                           <td>

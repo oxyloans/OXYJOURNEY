@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import Icon3D from "./Icon3D";
+import PageNavigation from "./PageNavigation";
 import JourneyLoginModal from "./JourneyLoginModal";
-import { isAdminView, getChatToken, getSharedSession, getSharedMessages, postSharedMessage, subscribeSharedMessages, SessionChatError, type SharedMessage, type SharedSession } from "../services/sessionChatApi";
+import { isAdminView, getChatToken, getChatPresence, markChatPresence, getSharedSession, getSharedMessages, postSharedMessage, setSessionRoleOverride, subscribeSharedMessages, SessionChatError, type ChatPresence, type SharedMessage, type SharedSession } from "../services/sessionChatApi";
 import { LOGO } from "../data/journeyData";
 import "./SessionChatPage.css";
 
@@ -20,7 +21,7 @@ const STARTERS = ["Hello 👋 Thanks for connecting", "When is a good time to ta
 const dateLabel = (iso: string) => new Date(iso).toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" });
 const timeLabel = (iso: string) => new Date(iso).toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" });
 
-export default function SessionChatPage({ sessionId, embedded = false }: { sessionId: string; embedded?: boolean }) {
+export default function SessionChatPage({ sessionId, embedded = false, roleOverride }: { sessionId: string; embedded?: boolean; roleOverride?: "USER" | "PARTNER" }) {
   const valid = /^[A-Za-z0-9_-]{1,128}$/.test(sessionId);
   const [authenticated, setAuthenticated] = useState(true) // no login needed to open a shared chat link;
   const [loginOpen, setLoginOpen] = useState(false);
@@ -34,6 +35,7 @@ export default function SessionChatPage({ sessionId, embedded = false }: { sessi
   const [online, setOnline] = useState(navigator.onLine);
   const [lastSync, setLastSync] = useState("");
   const [notice, setNotice] = useState("");
+  const [presence, setPresence] = useState<ChatPresence | null>(null);
   const list = useRef<HTMLDivElement>(null);
   const textarea = useRef<HTMLTextAreaElement>(null);
   const followBottom = useRef(true);
@@ -41,6 +43,7 @@ export default function SessionChatPage({ sessionId, embedded = false }: { sessi
   const mounted = useRef(true);
   const sendLock = useRef(false);
   useEffect(() => { mounted.current = true; return () => { mounted.current = false; }; }, []);
+  useEffect(() => { if (roleOverride) setSessionRoleOverride(sessionId, roleOverride); }, [sessionId, roleOverride]);
 
   useEffect(() => {
     setSession(null); setMessages([]); setLastSync(""); setError(""); setBlocked(false);
@@ -93,6 +96,27 @@ export default function SessionChatPage({ sessionId, embedded = false }: { sessi
   }, [sessionId, valid, authenticated]);
 
   useEffect(() => {
+    if (!valid || !authenticated || isAdminView()) return;
+    let active = true;
+    const controller = new AbortController();
+    const roleFromUrl = (window.location.pathname.match(/\/chat\/[^/]+\/(user|partner)\/?$/i)?.[1] || new URLSearchParams(window.location.search).get("role") || "partner").toUpperCase();
+    const role = roleFromUrl === "USER" ? "USER" : "PARTNER";
+    const heartbeat = async () => {
+      try {
+        const next = await markChatPresence(sessionId, role, controller.signal);
+        if (active) setPresence(next);
+      } catch {
+        try { const next = await getChatPresence(sessionId, controller.signal); if (active) setPresence(next); } catch { /* presence is optional */ }
+      }
+    };
+    void heartbeat();
+    const timer = window.setInterval(() => { if (!document.hidden) void heartbeat(); }, 30000);
+    const onVisible = () => { if (!document.hidden) void heartbeat(); };
+    document.addEventListener("visibilitychange", onVisible);
+    return () => { active = false; controller.abort(); clearInterval(timer); document.removeEventListener("visibilitychange", onVisible); };
+  }, [sessionId, valid, authenticated]);
+
+  useEffect(() => {
     if (followBottom.current && list.current) list.current.scrollTop = list.current.scrollHeight;
   }, [messages]);
   useEffect(() => {
@@ -133,11 +157,14 @@ export default function SessionChatPage({ sessionId, embedded = false }: { sessi
 
   const connected = Boolean(lastSync && online && !blocked && !error);
   const youName = adminView ? "Admin (read-only)" : me ? (me.role === "PARTNER" ? "Journey partner" : "Journey user") : "";
+  const otherStatus = me?.role === "USER" ? presence?.partnerStatus : presence?.userStatus;
+  const otherStatusLabel = otherStatus === "ACTIVE" ? "Active now" : otherStatus ? "Inactive" : "Status unavailable";
 
   return <div className={`oj-chat-page sc-page ${embedded ? "oj-chat-embedded" : ""}`}>
     <header className="oj-chat-brand sc-top">
       <a href="/" className="oj-chat-logo"><img src={LOGO} alt="OXY Journeys" /></a>
       <span className="oj-chat-tagline">Every journey, one partner</span>
+      {!embedded && <PageNavigation page="chat" />}
     </header>
 
     <main className="oj-chat-shell sc-shell">
@@ -169,7 +196,7 @@ export default function SessionChatPage({ sessionId, embedded = false }: { sessi
       <section className="oj-chat-window sc-window" aria-label="Session conversation">
         <header className="oj-chat-window-header sc-head">
           <span className="sc-avatar is-partner sc-head-avatar">{other ? initialOf(other.name) : <Icon name="chat" />}</span>
-          <div className="oj-chat-heading"><h2>{other?.name || "Your journey chat"}</h2><p><span className={`oj-chat-status-dot ${connected ? "is-connected" : ""}`} />{status}</p></div>
+          <div className="oj-chat-heading"><h2>{other?.name || "Your journey chat"}</h2><p><span className={`oj-chat-status-dot ${otherStatus === "ACTIVE" ? "is-connected" : ""}`} />{adminView ? status : otherStatusLabel}</p></div>
           <button className="oj-chat-icon-button" onClick={() => refresh.current()} aria-label="Refresh conversation" disabled={!authenticated || loading}><Icon name="refresh" /></button>
           <button className="oj-chat-share-button" onClick={copyLink} disabled={!valid}><Icon name="link" /><span>Copy link</span></button>
         </header>

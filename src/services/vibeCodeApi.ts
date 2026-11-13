@@ -218,10 +218,67 @@ export type BusinessCardCandidate = {
 
 export type BusinessCardResult = {
   sessionId?: string | null;
+  resolvedUserId?: string | null;
+  resolvedMobileNumber?: string | null;
+  resolvedPersonName?: string | null;
   extractedText?: string | null;
   candidates?: BusinessCardCandidate[] | null;
   message?: string | null;
 };
+
+export type BusinessCardUserHistoryResponse = {
+  userId: string;
+  businessCardUploadCount: number;
+  connectedMemberCount: number;
+  businessCards: {
+    uploadId: string | null;
+    sessionId: string | null;
+    matchSessionId?: string | null;
+    relatedMembers?: {
+      candidateId: string;
+      memberName: string | null;
+      classification: string | null;
+      source: string | null;
+      matchReason: string | null;
+      connected?: boolean;
+      chatWindowUrl?: string | null;
+    }[];
+    businessCardUrl: string | null;
+    personName: string | null;
+    companyName: string | null;
+    type: string | null;
+    uploadedAt: string | null;
+    members?: {
+      candidateId: string;
+      displayName: string | null;
+      classification: string | null;
+      connected: boolean;
+      chatWindowUrl: string | null;
+    }[] | null;
+  }[];
+  memberConnections: {
+    connectionSessionId: string | null;
+    memberName: string | null;
+    memberClassification: string | null;
+    memberSource: string | null;
+    chatWindowUrl: string | null;
+    chatStatus: string | null;
+  }[];
+};
+
+export async function getBusinessCardUserHistory(
+  userId: string,
+  accessToken?: string | null
+): Promise<BusinessCardUserHistoryResponse> {
+  return apiFetch<BusinessCardUserHistoryResponse>(
+    `/ai-service/vibe-code/business-card/users/${encodeURIComponent(userId)}/history`,
+    {
+      method: "GET",
+      headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : {},
+    },
+    API_CONFIG.businessCard
+  );
+}
 
 /** Connects the user with one matched member; the reply carries the chat URL. */
 export async function connectBusinessCardCandidate(args: {
@@ -270,12 +327,12 @@ const BUSINESS_CARD_TYPE = "oxyjourneys";
 
 /** Uploads a business card (image or PDF) for processing. Sent as multipart/form-data. */
 export async function uploadBusinessCard(args: {
-  userId: string;
+  userId?: string;
   file: File;
   accessToken?: string | null;
 }): Promise<BusinessCardResult> {
   const form = new FormData();
-  form.append("userId", args.userId);
+  if (args.userId) form.append("userId", args.userId);
   form.append("file", args.file);
   form.append("type", BUSINESS_CARD_TYPE);
 

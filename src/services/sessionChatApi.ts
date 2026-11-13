@@ -14,6 +14,16 @@ export type SharedMessage = {
   content: string;
   createdAt: string;
 };
+export type ChatPresence = {
+  sessionId: string;
+  userName?: string | null;
+  partnerName?: string | null;
+  chatStatus?: string | null;
+  partnerStatus?: string | null;
+  userStatus?: string | null;
+  partnerLastSeenAt?: string | number[] | null;
+  userLastSeenAt?: string | number[] | null;
+};
 export class SessionChatError extends Error {
   constructor(message: string, public status: number) { super(message); }
 }
@@ -51,6 +61,10 @@ export const markSessionOwner = (sessionId: string) => { try { if (sessionId) lo
 // Role worked out from the backend when this browser has no marker (e.g. the user opens the link on
 // another device): a logged-in user whose sessions include this one is the USER, anyone else the PARTNER.
 const resolvedRole = new Map<string, "USER" | "PARTNER">();
+const roleOverrides = new Map<string, "USER" | "PARTNER">();
+export const setSessionRoleOverride = (sessionId: string, role: "USER" | "PARTNER") => {
+  if (sessionId) roleOverrides.set(sessionId, role);
+};
 // The link decides the side: /oxy-journey/chat/{id}/partner goes to the partner, /user to the user.
 // "?role=user|partner" still works as an override. Links without either fall back to the checks below.
 const linkRole = (): "USER" | "PARTNER" | "" => {
@@ -59,6 +73,8 @@ const linkRole = (): "USER" | "PARTNER" | "" => {
   return value === "USER" || value === "PARTNER" ? value : "";
 };
 const myRole = (sessionId: string): "USER" | "PARTNER" => {
+  const override = roleOverrides.get(sessionId);
+  if (override) return override;
   const forced = linkRole();
   if (forced) return forced;
   if (localStorage.getItem(`oxyJourneySessionRole:${sessionId}`) === "USER") return "USER";
@@ -71,6 +87,25 @@ const sentLog: { sessionId: string; clientMessageId: string; content: string }[]
 
 /** Business card sessions (BIZCARD-…) are created on the local ai-service, so their chat is served there too. */
 const rootFor = (sessionId: string) => (sessionId.startsWith("BIZCARD-") ? API_CONFIG.businessCard : STREAM_API_ROOT);
+
+async function presenceFetch<T>(sessionId: string, path: string, method: "GET" | "POST" = "GET", signal?: AbortSignal): Promise<T> {
+  const token = getChatToken();
+  const response = await fetch(`${rootFor(sessionId)}/ai-service/vibe-code/${encodeURIComponent(sessionId)}${path}`, {
+    method,
+    signal: signal ? AbortSignal.any([signal, AbortSignal.timeout(10000)]) : AbortSignal.timeout(10000),
+    cache: "no-store",
+    headers: { Accept: "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+  });
+  const data = await response.json().catch(() => null);
+  if (!response.ok) throw new SessionChatError(data?.message || "Unable to load chat presence.", response.status);
+  return data as T;
+}
+
+export const getChatPresence = (sessionId: string, signal?: AbortSignal) =>
+  presenceFetch<ChatPresence>(sessionId, "/presence", "GET", signal);
+
+export const markChatPresence = (sessionId: string, participantType: "USER" | "PARTNER", signal?: AbortSignal) =>
+  presenceFetch<ChatPresence>(sessionId, `/presence/${participantType}`, "POST", signal);
 
 async function chatFetch(path: string, signal?: AbortSignal, body?: unknown) {
   const token = getChatToken();
@@ -192,11 +227,23 @@ function toIso(value: unknown) {
   return Number.isNaN(date.getTime()) ? new Date().toISOString() : date.toISOString();
 }
 
+const participantNames = new Map<string, ChatPresence>();
+
 export async function getSharedSession(id: string, signal?: AbortSignal): Promise<SharedSession> {
-  const { partnerName } = await loadHistory(id, signal); // surfaces 401/403/404 for the session
+  await loadHistory(id, signal); // surfaces 401/403/404 for the session
+  let names: ChatPresence | undefined;
+  try {
+    names = await getChatPresence(id, signal);
+    participantNames.set(id, names);
+  } catch {
+    // Never infer identities from AI prose or potentially mislabelled messages.
+    names = participantNames.get(id);
+  }
+  const partnerName = names?.partnerName?.trim() || "Journey partner";
+  const userName = names?.userName?.trim() || "Journey user";
   if (isAdminView()) {
     return { sessionId: id, title: "Journey conversation", currentUserId: "admin", participants: [
-      { userId: USER_SENDER_ID, name: "Customer", role: "USER" },
+      { userId: USER_SENDER_ID, name: userName, role: "USER" },
       { userId: PARTNER_SENDER_ID, name: partnerName || "Journey partner", role: "PARTNER" },
     ] };
   }
@@ -206,8 +253,8 @@ export async function getSharedSession(id: string, signal?: AbortSignal): Promis
     title: "Journey conversation",
     currentUserId: myUserId(),
     participants: [
-      { userId: myUserId(), name: me === "USER" ? "You" : partnerName || "You", role: me },
-      { userId: PARTNER_SENDER_ID, name: me === "USER" ? partnerName || "Journey partner" : "Customer", role: me === "USER" ? "PARTNER" : "USER" },
+      { userId: myUserId(), name: me === "USER" ? userName : partnerName, role: me },
+      { userId: PARTNER_SENDER_ID, name: me === "USER" ? partnerName : userName, role: me === "USER" ? "PARTNER" : "USER" },
     ],
   };
 }
@@ -219,7 +266,10 @@ export async function postSharedMessage(id: string, content: string, clientMessa
   sentLog.push({ sessionId: id, clientMessageId, content: content.trim() });
   chatCache.delete(id);
   try {
-    const saved = await chatFetch(`/ai-service/vibe-code/${encodeURIComponent(id)}/message`, undefined, { message: content, senderName: (localStorage.getItem("userName") || "").trim() || (myRole(id) === "USER" ? "User" : "Partner"), senderType: myRole(id) });
+    const role = myRole(id);
+    const names = participantNames.get(id);
+    const senderName = (role === "USER" ? names?.userName : names?.partnerName)?.trim() || (role === "USER" ? "User" : "Partner");
+    const saved = await chatFetch(`/ai-service/vibe-code/${encodeURIComponent(id)}/message`, undefined, { message: content, senderName, senderType: role });
     // Tie the server id to this optimistic copy so the pushed/polled echo does not duplicate it.
     if (saved?.id != null) { clientIdByServerId.set(String(saved.id), clientMessageId); claimedSent.add(sentLog.findIndex(entry => entry.clientMessageId === clientMessageId)); }
   } catch (error) {
