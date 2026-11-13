@@ -1,6 +1,6 @@
 /** Central backend config. Every API points at the live backend. */
-// export const API_BASE_URL = "https://meta.oxyloans.com/api";
-export const API_BASE_URL = "http://localhost:9040/api"; // local backend
+export const API_BASE_URL = "https://meta.oxyloans.com/api";
+// export const API_BASE_URL = "http://localhost:9040/api"; // local backend
 
 /** Login (OTP) API root. */
 export const LOGIN_API_BASE_URL = "https://meta.oxyloans.com/api";
