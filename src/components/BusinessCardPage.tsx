@@ -45,10 +45,19 @@ function getChatWindowHref(value?: string | null): string | null {
   }
 }
 
-function formatHistoryDate(value?: string | null): string {
-  if (!value) return "";
-  const date = new Date(value);
-  return Number.isNaN(date.getTime()) ? "" : date.toLocaleDateString();
+function resolveUserChatUrl(chatWindowUrl?: string | null, reply?: string | null): string | null {
+  const directUrl = getChatWindowHref(chatWindowUrl);
+  if (directUrl) return directUrl;
+
+  const messageUrl = reply?.match(/https?:\/\/[^\s)\]]+\/oxy-journey\/chat\/[^\s)\]]+/i)?.[0];
+  return getChatWindowHref(messageUrl);
+}
+
+function businessCardStatus(result: BusinessCardResult): string {
+  const matchCount = result.candidates?.length ?? 0;
+  if (matchCount > 0) return `We found ${matchCount} relevant ${matchCount === 1 ? "person" : "people"} in the network.`;
+  if (result.sessionId) return "Your card was processed. No matching members were found right now.";
+  return "We couldn't complete matching right now. Please try again shortly.";
 }
 
 function ProcessingPanel({ step }: { step: number }) {
@@ -56,15 +65,25 @@ function ProcessingPanel({ step }: { step: number }) {
 
   return (
     <div className="bcp-processing" role="status" aria-live="polite" aria-busy="true">
-      <div className="bcp-processing-orbit" aria-hidden="true">
-        <div className="bcp-processing-ring">
-        <i className="bcp-processing-node bcp-processing-node-one" />
-        <i className="bcp-processing-node bcp-processing-node-two" />
-        <i className="bcp-processing-node bcp-processing-node-three" />
+      <div className="bcp-match-scene" aria-hidden="true">
+        <svg className="bcp-match-paths" viewBox="0 0 300 150" preserveAspectRatio="none">
+          <path d="M105 75 C150 75 156 30 205 30" />
+          <path d="M105 75 C150 75 156 75 205 75" />
+          <path d="M105 75 C150 75 156 120 205 120" />
+        </svg>
+        <div className="bcp-scan-card">
+          <span className="bcp-scan-card-icon">
+            <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="5" width="18" height="14" rx="2" /><path d="M7 9h5M7 13h3M15 10h2M15 14h2" /></svg>
+          </span>
+          <span className="bcp-scan-lines"><i /><i /><i /></span>
+          <span className="bcp-scan-beam" />
         </div>
-        <div className="bcp-processing-card">
-          <svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="5" width="18" height="14" rx="2" /><path d="M7 9h5M7 13h3M15 10h2M15 14h2" /></svg>
-        </div>
+        <span className="bcp-data-pulse bcp-data-pulse-one" />
+        <span className="bcp-data-pulse bcp-data-pulse-two" />
+        <span className="bcp-data-pulse bcp-data-pulse-three" />
+        <span className="bcp-match-person bcp-match-person-one"><i>1</i><b>✓</b></span>
+        <span className="bcp-match-person bcp-match-person-two"><i>2</i><b>✓</b></span>
+        <span className="bcp-match-person bcp-match-person-three"><i>3</i><b>✓</b></span>
       </div>
       <h2>Your card is working for you</h2>
       <div key={step} className="bcp-processing-copy">
@@ -106,26 +125,58 @@ function ProcessingStyles() {
       .bcp-processing-steps{display:flex;gap:7px}.bcp-processing-steps span{width:7px;height:7px;border-radius:50%;background:#d9e1f0;transition:background .3s,transform .3s}.bcp-processing-steps span.is-complete{background:#4f46e5;transform:scale(1.15)}
       .bcp-processing-tip{max-width:440px;margin:22px 0 0;padding:10px 14px;border-radius:12px;background:#f5f7ff;color:#65708a;font-size:12px;line-height:1.5}.bcp-processing-tip strong{color:#38476b}.bcp-processing-trust{margin:10px 0 0;color:#8a94a7;font-size:11px;font-weight:600}.bcp-processing-trust span{color:#7468e8;font-size:14px;vertical-align:-1px}
       @keyframes bcp-spin{to{transform:rotate(360deg)}}@keyframes bcp-float{50%{transform:translateY(-4px)}}@keyframes bcp-shimmer{from{transform:translateX(-100%)}to{transform:translateX(100%)}}@media (prefers-reduced-motion:reduce){.bcp-processing-orbit,.bcp-processing-card,.bcp-processing-bar span:after{animation:none}.bcp-processing-bar span,.bcp-processing-steps span,.bcp-processing-signals span{transition:none}}
-      .bcp-processing{animation:bcp-reveal .65s cubic-bezier(.22,1,.36,1) both}
+      .bcp-processing{animation:bcp-reveal .8s cubic-bezier(.16,1,.3,1) both}
       .bcp-processing-orbit{width:120px;height:120px;margin:8px 0 26px;background:transparent;border:0;animation:none;isolation:isolate}
-      .bcp-processing-orbit:before{inset:-12px;background:radial-gradient(circle,#e9e5ff 0%,#edf3ff80 48%,transparent 72%);animation:bcp-breathe 4.8s ease-in-out infinite;z-index:-1}
-      .bcp-processing-orbit:after{content:"";position:absolute;inset:12px;border:1px dashed #c7d2f2;border-radius:50%;animation:bcp-spin 24s linear infinite reverse;z-index:-1}
-      .bcp-processing-ring{position:absolute;inset:0;border:1px solid #e3e7fc;border-radius:50%;animation:bcp-spin 12s linear infinite}
-      .bcp-processing-ring:before{content:"";position:absolute;inset:-1px;border:3px solid transparent;border-top-color:#a3acfa;border-right-color:#cbb8fa;border-radius:50%;opacity:.65}
-      .bcp-processing-card{width:60px;height:60px;border-radius:19px;overflow:hidden;animation:bcp-card-drift 5s ease-in-out infinite;box-shadow:0 12px 26px #6655d52b,inset 0 1px 1px #ffffff60}
+      .bcp-processing-orbit:before{inset:-14px;background:radial-gradient(circle,#e9e5ff 0%,#edf3ff8c 45%,transparent 72%);animation:bcp-breathe 4.6s cubic-bezier(.45,0,.55,1) infinite;z-index:-1;will-change:transform,opacity}
+      .bcp-processing-orbit:after{content:"";position:absolute;inset:13px;border:1px dashed #c7d2f2;border-radius:50%;animation:bcp-spin 26s linear infinite reverse;z-index:-1;will-change:transform}
+      .bcp-processing-ring{position:absolute;inset:0;border:1px solid #e3e7fc;border-radius:50%;animation:bcp-spin 14s linear infinite;will-change:transform}
+      .bcp-processing-ring:before{content:"";position:absolute;inset:-1px;border:3px solid transparent;border-top-color:#8fa5ff;border-right-color:#c4a7ff;border-radius:50%;opacity:.72}
+      .bcp-processing-ring:after{content:"";position:absolute;inset:20px;border:1px solid #e6ebff;border-radius:50%;box-shadow:inset 0 0 18px #9b8cff14}
+      .bcp-processing-node{animation:bcp-node-pulse 2.8s cubic-bezier(.45,0,.55,1) infinite;will-change:transform,opacity}
+      .bcp-processing-node-two{animation-delay:-.9s}.bcp-processing-node-three{animation-delay:-1.8s}
+      .bcp-processing-card{width:60px;height:60px;border-radius:19px;overflow:hidden;animation:bcp-card-drift 4.8s cubic-bezier(.45,0,.55,1) infinite;box-shadow:0 12px 26px #6655d52b,inset 0 1px 1px #ffffff60;will-change:transform}
       .bcp-processing-card:after{content:"";position:absolute;inset:-40%;background:linear-gradient(110deg,transparent 38%,#ffffff25 50%,transparent 62%);animation:bcp-card-light 6s ease-in-out infinite;pointer-events:none}
-      .bcp-processing-copy{min-height:76px;display:flex;flex-direction:column;align-items:center;animation:bcp-reveal .65s cubic-bezier(.22,1,.36,1) both}
-      .bcp-processing-bar span{width:100%;transform-origin:left;transition:transform 2.2s cubic-bezier(.22,1,.36,1)}
+      .bcp-processing h2{animation:bcp-heading-in .9s .15s cubic-bezier(.16,1,.3,1) both}
+      .bcp-processing-copy{min-height:76px;display:flex;flex-direction:column;align-items:center;animation:bcp-copy-in .7s cubic-bezier(.16,1,.3,1) both}
+      .bcp-processing-bar span{width:100%;transform-origin:left;transition:transform 2.35s cubic-bezier(.16,1,.3,1);will-change:transform}
       .bcp-processing-bar span:after{animation-duration:3s;opacity:.55}
       .bcp-processing-tip{min-height:60px;display:grid;place-items:center;box-sizing:border-box}
-      .bcp-processing-tip-copy{display:block;animation:bcp-reveal .75s ease both}
-      .bcp-processing-signals span{transition:background .6s ease,color .6s ease,border-color .6s ease}
-      @keyframes bcp-reveal{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
-      @keyframes bcp-card-drift{0%,100%{transform:translateY(2px) rotate(-3deg)}50%{transform:translateY(-4px) rotate(3deg)}}
-      @keyframes bcp-breathe{0%,100%{opacity:.6;transform:scale(.96)}50%{opacity:1;transform:scale(1.08)}}
+      .bcp-processing-tip-copy{display:block;animation:bcp-copy-in .75s cubic-bezier(.16,1,.3,1) both}
+      .bcp-processing-signals span{transform:translateY(0);transition:background .65s ease,color .65s ease,border-color .65s ease,transform .65s cubic-bezier(.16,1,.3,1),box-shadow .65s ease}
+      .bcp-processing-signals span.is-active{transform:translateY(-1px);box-shadow:0 5px 14px #6259d814}
+      .bcp-processing-signals span i{transition:background .65s ease,transform .65s cubic-bezier(.16,1,.3,1)}
+      .bcp-processing-signals span.is-active i{transform:scale(1.08)}
+      .bcp-processing-steps span{transition:background .55s ease,transform .55s cubic-bezier(.16,1,.3,1),box-shadow .55s ease}
+      .bcp-processing-steps span.is-complete{box-shadow:0 0 0 4px #4f46e510}
+      .bcp-match-scene{position:relative;width:min(320px,100%);height:158px;margin:0 0 22px;isolation:isolate}
+      .bcp-match-scene:before{content:"";position:absolute;inset:13px 35px;border-radius:50%;background:radial-gradient(ellipse,#eaf0ff 0%,#f4f6ff99 48%,transparent 72%);animation:bcp-scene-breathe 4.5s ease-in-out infinite;z-index:-1}
+      .bcp-match-paths{position:absolute;inset:4px 10px;width:calc(100% - 20px);height:150px;overflow:visible}
+      .bcp-match-paths path{fill:none;stroke:#cbd8fb;stroke-width:1.5;stroke-linecap:round;stroke-dasharray:5 7;animation:bcp-path-flow 4s linear infinite}
+      .bcp-match-paths path:nth-child(2){animation-delay:-1.3s}.bcp-match-paths path:nth-child(3){animation-delay:-2.6s}
+      .bcp-scan-card{position:absolute;left:24px;top:43px;width:104px;height:72px;display:flex;align-items:center;gap:10px;padding:13px;border:1px solid #cddaff;border-radius:15px;background:linear-gradient(145deg,#fff,#f5f7ff);box-shadow:0 14px 30px #3a5ec21c;animation:bcp-scan-card-float 4.8s ease-in-out infinite;overflow:hidden;will-change:transform}
+      .bcp-scan-card-icon{display:grid;place-items:center;flex:none;width:38px;height:38px;border-radius:11px;color:#fff;background:linear-gradient(145deg,#1f6df2,#6847ef);box-shadow:0 8px 18px #315fdb32}
+      .bcp-scan-lines{display:grid;flex:1;gap:6px}.bcp-scan-lines i{display:block;height:4px;border-radius:99px;background:#d9e2f7}.bcp-scan-lines i:nth-child(2){width:76%}.bcp-scan-lines i:nth-child(3){width:52%}
+      .bcp-scan-beam{position:absolute;top:-10%;bottom:-10%;width:26px;background:linear-gradient(90deg,transparent,#2f70ff2d,transparent);filter:drop-shadow(0 0 5px #5a73ff66);animation:bcp-scan-beam 2.8s cubic-bezier(.45,0,.55,1) infinite}
+      .bcp-match-person{position:absolute;right:30px;display:grid;place-items:center;width:44px;height:44px;border:3px solid #fff;border-radius:50%;color:#536179;background:linear-gradient(145deg,#e9efff,#f9faff);box-shadow:0 8px 20px #3959a822;animation:bcp-person-in 3.6s cubic-bezier(.16,1,.3,1) infinite;will-change:transform,opacity}
+      .bcp-match-person i{font-size:12px;font-style:normal;font-weight:800}.bcp-match-person b{position:absolute;right:-4px;bottom:-2px;display:grid;place-items:center;width:18px;height:18px;border:2px solid #fff;border-radius:50%;color:#fff;background:#24b47e;font-size:10px}
+      .bcp-match-person-one{top:7px;animation-delay:0s}.bcp-match-person-two{top:57px;right:10px;animation-delay:-1.2s}.bcp-match-person-three{top:107px;animation-delay:-2.4s}
+      .bcp-data-pulse{position:absolute;left:125px;width:7px;height:7px;border-radius:50%;background:#2563eb;box-shadow:0 0 0 4px #2563eb14;animation:bcp-data-travel 3.6s linear infinite;opacity:0}
+      .bcp-data-pulse-one{top:72px;--pulse-y:-45px}.bcp-data-pulse-two{top:75px;--pulse-y:0px;animation-delay:-1.2s}.bcp-data-pulse-three{top:78px;--pulse-y:45px;animation-delay:-2.4s}
+      @keyframes bcp-reveal{from{opacity:0;transform:translateY(10px) scale(.985)}to{opacity:1;transform:translateY(0) scale(1)}}
+      @keyframes bcp-heading-in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+      @keyframes bcp-copy-in{from{opacity:0;transform:translateY(8px);filter:blur(2px)}to{opacity:1;transform:translateY(0);filter:blur(0)}}
+      @keyframes bcp-card-drift{0%,100%{transform:translate3d(0,2px,0) rotate(-2deg)}50%{transform:translate3d(0,-5px,0) rotate(2deg)}}
+      @keyframes bcp-breathe{0%,100%{opacity:.58;transform:scale(.96)}50%{opacity:1;transform:scale(1.07)}}
+      @keyframes bcp-node-pulse{0%,100%{opacity:.72;transform:scale(.88)}50%{opacity:1;transform:scale(1.22)}}
       @keyframes bcp-card-light{0%,25%{transform:translateX(-100%)}65%,100%{transform:translateX(100%)}}
+      @keyframes bcp-scene-breathe{0%,100%{opacity:.65;transform:scale(.96)}50%{opacity:1;transform:scale(1.04)}}
+      @keyframes bcp-path-flow{to{stroke-dashoffset:-24}}
+      @keyframes bcp-scan-card-float{0%,100%{transform:translateY(2px) rotate(-1deg)}50%{transform:translateY(-4px) rotate(1deg)}}
+      @keyframes bcp-scan-beam{0%{left:-30%;opacity:0}18%{opacity:1}82%{opacity:1}100%{left:110%;opacity:0}}
+      @keyframes bcp-person-in{0%,100%{opacity:.72;transform:scale(.92)}20%,72%{opacity:1;transform:scale(1)}35%{transform:scale(1.08)}}
+      @keyframes bcp-data-travel{0%{opacity:0;transform:translate(0,0) scale(.7)}12%{opacity:1}82%{opacity:1}100%{opacity:0;transform:translate(103px,var(--pulse-y)) scale(1)}}
       @media(max-width:480px){.bcp-processing{padding:16px 0}.bcp-processing h2{font-size:20px}.bcp-processing-copy{min-height:92px}.bcp-processing-tip{min-height:78px}.bcp-processing-detail{font-size:13px}}
-      @media(prefers-reduced-motion:reduce){.bcp-processing,.bcp-processing-orbit:before,.bcp-processing-orbit:after,.bcp-processing-ring,.bcp-processing-card,.bcp-processing-card:after,.bcp-processing-copy,.bcp-processing-tip-copy{animation:none}.bcp-processing-bar span,.bcp-processing-signals span{transition:none}}
+      @media(prefers-reduced-motion:reduce){.bcp-processing,.bcp-processing h2,.bcp-match-scene:before,.bcp-match-paths path,.bcp-scan-card,.bcp-scan-beam,.bcp-match-person,.bcp-data-pulse,.bcp-processing-copy,.bcp-processing-tip-copy{animation:none}.bcp-data-pulse{display:none}.bcp-processing-bar span,.bcp-processing-signals span,.bcp-processing-signals span i,.bcp-processing-steps span{transition:none}}
     `}</style>
   );
 }
@@ -147,9 +198,7 @@ export default function BusinessCardPage({ onBack, onAssistant }: BusinessCardPa
   const [historyError, setHistoryError] = useState("");
   const [historyActionError, setHistoryActionError] = useState("");
   const [historyRevision, setHistoryRevision] = useState(0);
-  const [selectedCardKey, setSelectedCardKey] = useState<string | null>(null);
-  const [historyOpen, setHistoryOpen] = useState(false);
-  const [historyExpanded, setHistoryExpanded] = useState(false);
+  const [selectedCardKey, setSelectedCardKey] = useState<string | null>(() => new URLSearchParams(window.location.search).get("card"));
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -192,7 +241,7 @@ export default function BusinessCardPage({ onBack, onAssistant }: BusinessCardPa
     }
     const timer = window.setInterval(() => {
       setProcessingStep(current => Math.min(current + 1, PROCESSING_STEPS.length - 1));
-    }, 2600);
+    }, 3000);
     return () => window.clearInterval(timer);
   }, [uploading]);
 
@@ -226,8 +275,8 @@ export default function BusinessCardPage({ onBack, onAssistant }: BusinessCardPa
       setChatLinks({});
       setDone(true);
       setHistoryRevision(current => current + 1);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Upload failed. Please try again.");
+    } catch {
+      setError("We couldn't process your card right now. Please try again shortly.");
     } finally {
       setUploading(false);
     }
@@ -246,13 +295,8 @@ export default function BusinessCardPage({ onBack, onAssistant }: BusinessCardPa
     setError("");
   }
 
-  function selectHistoryCard(key: string) {
-    setSelectedCardKey(key);
-    setHistoryActionError("");
-    setHistoryOpen(false);
-  }
 
-  /** Asks the server to connect with a matched member, then opens the chat URL it returns. */
+  /** Connects with a matched member and reveals the user's chat button. */
   async function connect(sessionId: string, candidateId: string, reconnect = false) {
     if (!sessionId || connectingId) return;
     const existing = chatLinks[candidateId];
@@ -269,13 +313,12 @@ export default function BusinessCardPage({ onBack, onAssistant }: BusinessCardPa
         candidateId,
         accessToken: getJourneyIdentity()?.accessToken,
       });
-      const url = reply.chatWindowUrl?.trim();
-      if (!url) throw new Error(reply.reply?.trim() || "Connected, but no chat link was returned.");
+      const url = resolveUserChatUrl(reply.chatWindowUrl, reply.reply);
+      if (!url) throw new Error("Connected, but the chat window is not ready yet. Please try again.");
       setChatLinks(current => ({ ...current, [candidateId]: url }));
       setHistoryRevision(current => current + 1);
-      window.open(url, "_blank", "noopener,noreferrer");
-    } catch (err) {
-      const message = err instanceof Error ? err.message : "Could not connect. Please try again.";
+    } catch {
+      const message = "We couldn't connect right now. Please try again.";
       if (result?.sessionId === sessionId && selectedCardKey === null) setError(message);
       else setHistoryActionError(message);
     } finally {
@@ -284,8 +327,6 @@ export default function BusinessCardPage({ onBack, onAssistant }: BusinessCardPa
   }
 
   const businessCards = (history?.businessCards ?? []).map(card => ({ ...card, sessionId: card.matchSessionId || card.sessionId }));
-  const visibleBusinessCards = historyExpanded ? businessCards : businessCards.slice(0, 5);
-  const memberConnections = history?.memberConnections ?? [];
   const cardKey = (card: BusinessCardUserHistoryResponse["businessCards"][number], index: number) =>
     card.uploadId || `${card.uploadedAt || "card"}-${index}`;
   const selectedCard = businessCards.find((card, index) => cardKey(card, index) === selectedCardKey);
@@ -308,98 +349,13 @@ export default function BusinessCardPage({ onBack, onAssistant }: BusinessCardPa
         onHome={onBack}
         navigation={<PageNavigation page="business-card" />}
         onLoginSuccess={() => setHistoryRevision(current => current + 1)}
-        rightSlot={!historyOpen ? (
-          <button
-            type="button"
-            className="bcp-history-toggle"
-            aria-controls="bcp-history-sidebar"
-            onClick={() => setHistoryOpen(true)}
-          >
-            <span className="bcp-history-toggle-icon" aria-hidden="true">◷</span>
-            <span>History</span>
-            {!!history?.businessCardUploadCount && <b>{history.businessCardUploadCount > 9 ? "9+" : history.businessCardUploadCount}</b>}
-          </button>
-        ) : null}
       />
 
       <div className="bcp-layout">
-        {historyOpen && <button type="button" className="bcp-sidebar-backdrop" aria-label="Close history" onClick={() => setHistoryOpen(false)} />}
-        <aside id="bcp-history-sidebar" className={`bcp-history-sidebar${historyOpen ? " is-open" : ""}`} aria-labelledby="bcp-history-title">
-          <div className="bcp-history-heading">
-            <div>
-              <h2 id="bcp-history-title">Your history</h2>
-              {history && <p>{history.businessCardUploadCount} cards · {history.connectedMemberCount} connections</p>}
-            </div>
-            <button type="button" className="bcp-sidebar-close" aria-label="Close history" onClick={() => setHistoryOpen(false)}>×</button>
-          </div>
-          {historyLoading ? (
-            <p className="bcp-history-status" role="status">Loading your history…</p>
-          ) : historyError ? (
-            <p className="bcp-history-error" role="alert">
-              {historyError}
-              <button type="button" onClick={() => setHistoryRevision(current => current + 1)}>Retry</button>
-            </p>
-          ) : !history ? null : businessCards.length === 0 && memberConnections.length === 0 ? (
-            <p className="bcp-history-empty">No saved business cards or partner conversations yet.</p>
-          ) : (
-            <>
-              {businessCards.length > 0 && (
-                <div className="bcp-history-group">
-                  <h3>Uploaded cards</h3>
-                  <ul className="bcp-history-list">
-                    {visibleBusinessCards.map((card, index) => {
-                      const key = cardKey(card, index);
-                      return (
-                        <li key={key}>
-                          <button
-                            type="button"
-                            className={`bcp-history-card${selectedCardKey === key ? " is-selected" : ""}`}
-                            aria-pressed={selectedCardKey === key}
-                            onClick={() => selectHistoryCard(key)}
-                          >
-                            <span>
-                              <strong>{card.personName || card.companyName || "Business card"}</strong>
-                              <small>{[card.companyName, formatHistoryDate(card.uploadedAt)].filter(Boolean).join(" · ")}</small>
-                            </span>
-                            <span className="bcp-history-select">{selectedCardKey === key ? "Selected" : "View results"}</span>
-                          </button>
-                        </li>
-                      );
-                    })}
-                  </ul>
-                  {businessCards.length > 5 && (
-                    <button type="button" className="bcp-history-more" onClick={() => setHistoryExpanded(expanded => !expanded)}>
-                      {historyExpanded ? "Show less" : `View ${businessCards.length - 5} more cards`}
-                    </button>
-                  )}
-                </div>
-              )}
-              {memberConnections.length > 0 && (
-                <div className="bcp-history-group">
-                  <h3>Partner conversations</h3>
-                  <ul className="bcp-history-list">
-                    {memberConnections.map((connection, index) => {
-                      const chatUrl = getChatWindowHref(connection.chatWindowUrl);
-                      return (
-                        <li key={connection.connectionSessionId || `${connection.memberName || "member"}-${index}`}>
-                          <span>
-                            <strong>{connection.memberName || "Journey partner"}</strong>
-                            <small>{connection.memberClassification || connection.chatStatus || "Connected through your business card"}</small>
-                          </span>
-                          {chatUrl
-                            ? <a className="bcp-history-chat" href={chatUrl} target="_blank" rel="noopener noreferrer">Continue chat <span aria-hidden="true">↗</span></a>
-                            : <small className="bcp-history-unavailable">Chat link unavailable</small>}
-                        </li>
-                      );
-                    })}
-                  </ul>
-                </div>
-              )}
-            </>
-          )}
-        </aside>
 
         <main className="bcp-main">
+        {selectedCardKey && historyLoading && <p role="status">Loading saved card...</p>}
+        {selectedCardKey && !historyLoading && history && !selectedCard && <p role="status">This saved card is no longer available.</p>}
         <h1>
           Meet people who move <span>your work forward.</span>
         </h1>
@@ -433,6 +389,7 @@ export default function BusinessCardPage({ onBack, onAssistant }: BusinessCardPa
                   <ul className="bcp-matches bcp-history-matches" aria-label="Members matched from this card">
                     {selectedMembers.slice(0, MAX_MATCHES).map(member => {
                       const displayName = member.displayName?.trim() || "Network member";
+                      const chatUrl = chatLinks[member.candidateId] || getChatWindowHref(member.chatWindowUrl);
                       return (
                         <li key={member.candidateId}>
                           <span className="bcp-history-avatar" aria-hidden="true">{displayName.charAt(0).toUpperCase()}</span>
@@ -440,14 +397,16 @@ export default function BusinessCardPage({ onBack, onAssistant }: BusinessCardPa
                             <strong>{displayName}</strong>
                             {member.classification && <span className="bcp-profession-badge">{member.classification}</span>}
                           </span>
-                          {selectedCard.sessionId && (
+                          {(selectedCard.sessionId || chatUrl) && (
                             <button
                               type="button"
-                              className="bcp-connect"
+                              className={`bcp-connect${chatUrl ? " is-chat-ready" : ""}`}
                               disabled={connectingId !== null}
-                              onClick={() => void connect(selectedCard.sessionId, member.candidateId, member.connected)}
+                              onClick={() => chatUrl
+                                ? window.open(chatUrl, "_blank", "noopener,noreferrer")
+                                : selectedCard.sessionId && void connect(selectedCard.sessionId, member.candidateId, member.connected)}
                             >
-                              {connectingId === member.candidateId ? "Connecting…" : member.connected ? "Connect again" : "Connect"}
+                              {connectingId === member.candidateId ? "Connecting…" : chatUrl ? "Open chat window" : member.connected ? "Connect again" : "Connect"}
                               <svg aria-hidden="true" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14m-5-5 5 5-5 5" /></svg>
                             </button>
                           )}
@@ -463,7 +422,7 @@ export default function BusinessCardPage({ onBack, onAssistant }: BusinessCardPa
             <ProcessingPanel step={processingStep} />
           ) : done && result ? (
             <div className="bcp-result">
-              <p className="bcp-done" role="status">{result.message || "Card processed."}</p>
+              <p className="bcp-done" role="status">{businessCardStatus(result)}</p>
 
               {result.extractedText && (
                 <details className="bcp-extract">
@@ -474,16 +433,17 @@ export default function BusinessCardPage({ onBack, onAssistant }: BusinessCardPa
 
               {result.candidates && result.candidates.length > 0 && (
                 <ul className="bcp-matches" aria-label="Your matches">
-                  {result.candidates.slice(0, MAX_MATCHES).map(c => (
-                    <li key={c.candidateId}>
+                  {result.candidates.slice(0, MAX_MATCHES).map(c => {
+                    const chatUrl = chatLinks[c.candidateId];
+                    return <li key={c.candidateId}>
                       <span className="bcp-match-info">
                         <strong>{c.displayName}</strong>
                       </span>
-                      <button type="button" className="bcp-connect" disabled={connectingId !== null || !result.sessionId} onClick={() => result.sessionId && void connect(result.sessionId, c.candidateId)}>
-                        {connectingId === c.candidateId ? "Connecting…" : chatLinks[c.candidateId] ? "Open chat" : "Connect"}
+                      <button type="button" className={`bcp-connect${chatUrl ? " is-chat-ready" : ""}`} disabled={connectingId !== null || (!result.sessionId && !chatUrl)} onClick={() => chatUrl ? window.open(chatUrl, "_blank", "noopener,noreferrer") : result.sessionId && void connect(result.sessionId, c.candidateId)}>
+                        {connectingId === c.candidateId ? "Connecting…" : chatUrl ? "Open chat window" : "Connect"}
                       </button>
-                    </li>
-                  ))}
+                    </li>;
+                  })}
                 </ul>
               )}
 

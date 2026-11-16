@@ -25,9 +25,12 @@ export default function MobileJourneyHeader({
           <MenuIcon />
         </button>
 
-        <a href="/" className="oxj-mobile-logo-link" aria-label="OXY Journeys Home">
-          <img src={LOGO} alt="OXY Journeys" />
-        </a>
+        <div className="oxj-mobile-brand-copy">
+          <a href="/" className="oxj-mobile-logo-link" aria-label="OXY Journeys Home">
+            <img src={LOGO} alt="OXY Journeys" />
+          </a>
+          <span className="oxj-mobile-active-label">{activeLabel}</span>
+        </div>
       </div>
 
       <div className="oxj-mobile-header-actions">

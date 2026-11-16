@@ -455,6 +455,17 @@ export type PartnerUserSummary = {
   matchedAt: string | null;
 };
 
+export type PartnerLeadDetails = {
+  sessionId: string;
+  userName: string | null;
+  requirementSummary: string | null;
+  partnerName: string | null;
+  partnerClassification: string | null;
+  membershipSource: string | null;
+  chatUrl: string | null;
+  dashboardUrl: string | null;
+};
+
 export type DirectChatMessage = {
   id: number | null;
   sessionId: string | null;
@@ -495,6 +506,17 @@ export async function getPartnerChatHistory(
 export async function getPartnerUsersByMobile(mobile: string): Promise<PartnerUserSummary[]> {
   return apiFetch<PartnerUserSummary[]>(
     `/ai-service/vibe-code/partner/by-mobile/${encodeURIComponent(mobile)}/users`,
+    { method: "GET" },
+    STREAM_API_ROOT
+  );
+}
+
+export async function getPartnerLeadDetailsByMobile(
+  mobile: string,
+  sessionId: string
+): Promise<PartnerLeadDetails> {
+  return apiFetch<PartnerLeadDetails>(
+    `/ai-service/vibe-code/partner/by-mobile/${encodeURIComponent(mobile)}/lead/${encodeURIComponent(sessionId)}`,
     { method: "GET" },
     STREAM_API_ROOT
   );

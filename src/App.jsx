@@ -8,6 +8,7 @@ import SessionChatPage from "./components/SessionChatPage";
 import PartnerChatsDashboard from "./components/PartnerChatsDashboard";
 import AdminDashboard from "./components/admin/AdminDashboard";
 import PartnerUsersDashboard from "./components/PartnerUsersDashboard";
+import PartnerLeadPage from "./components/PartnerLeadPage";
 
 
 const PLATFORM_JOURNEYS = {
@@ -472,6 +473,7 @@ function App() {
   }
   if (/^\/(?:oxy-journey\/)?admin(?:\/.*)?$/.test(path)) return <AdminDashboard />;
   if (/^\/oxy-journey\/partner\/chats\/?$/.test(path)) return <PartnerChatsDashboard />;
+  if (/^\/oxy-journey\/partner\/lead\/?$/.test(path)) return <PartnerLeadPage />;
   if (/^\/oxy-journey\/partner\/users\/?$/.test(path)) return <PartnerUsersDashboard />;
   const match = /^\/oxy-journey\/chat\/([^/]+?)(?:\/(?:user|partner))?\/?$/.exec(path);
   if (match) {

@@ -45,6 +45,8 @@
 .bcp-connect{flex:none;padding:8px 18px;border:0;border-radius:999px;font-weight:600;font-size:14px;color:#fff;cursor:pointer;background:linear-gradient(90deg,#2563eb,#7c3aed);transition:transform .2s,box-shadow .2s,opacity .2s}
 .bcp-connect:hover:not(:disabled){transform:translateY(-1px);box-shadow:0 6px 16px rgba(91,91,240,.35)}
 .bcp-connect:disabled{opacity:.55;cursor:default}
+.bcp-connect.is-chat-ready{background:linear-gradient(90deg,#0f67e8,#2563eb);box-shadow:0 6px 16px rgba(37,99,235,.22)}
+.bcp-connect.is-chat-ready:hover:not(:disabled){box-shadow:0 8px 20px rgba(37,99,235,.32)}
 .bcp-again{align-self:center;border:0;background:none;color:#2f4fd8;font-weight:600;cursor:pointer;padding:6px}
 .bcp-again:hover{text-decoration:underline}
 .bcp-done{margin:0;padding:18px 14px;border-radius:14px;background:#e8f7ef;color:#12805c;font-weight:600;text-align:center}

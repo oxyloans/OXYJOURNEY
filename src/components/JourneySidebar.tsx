@@ -1,4 +1,5 @@
 import { useEffect, useId, useMemo, useRef, useState } from "react";
+import BusinessCardHistory from "./BusinessCardHistory";
 import {
   classificationLabel,
   LIFE_STAGES,
@@ -300,7 +301,7 @@ export default function JourneySidebar({
   const query = search.trim().toLowerCase();
   const controlsId = useId();
   const [draftStageId, setDraftStageId] = useState(stageId);
-  const [sidebarView, setSidebarView] = useState<"journeys" | "history" | "partners">("journeys");
+  const [sidebarView, setSidebarView] = useState<"journeys" | "history" | "partners" | "cards">("journeys");
   const [stageDropdownOpen, setStageDropdownOpen] = useState(mode === "life-cycle");
   const [professionDropdownOpen, setProfessionDropdownOpen] = useState(mode === "profession");
   const [expandedPlatformId, setExpandedPlatformId] = useState(activePlatformId);
@@ -499,7 +500,9 @@ export default function JourneySidebar({
           >
             Partner chats
           </button>
+          <button type="button" className={sidebarView === "cards" ? "active" : ""} aria-pressed={sidebarView === "cards"} onClick={() => setSidebarView("cards")}>Business card history</button>
         </div>
+        {sidebarView === "cards" && <BusinessCardHistory />}
 
         {sidebarView === "journeys" && (<>
         <div className="oxj-search">
