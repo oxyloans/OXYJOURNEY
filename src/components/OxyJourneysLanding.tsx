@@ -764,7 +764,7 @@ export default function OxyJourneysLanding({
       }
       const chatWindowUrl = getChatWindowUrl(result.chatWindowUrl) || getChatWindowUrl(streamedChatWindowUrl);
       if (!streamed && !result.reply?.trim() && !chatWindowUrl) throw new Error("Empty reply");
-      if (chatWindowUrl) {
+      if (chatWindowUrl && !/\/oxy-journey\/chat\//i.test(result.reply || "")) {
         const replyWithButton = chatWindowButtonReply(chatWindowUrl);
         if (onReplace) onReplace(replyWithButton);
         else onChunk(replyWithButton);

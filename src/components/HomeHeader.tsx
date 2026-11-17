@@ -2,6 +2,7 @@ import { useState, type ReactNode } from "react";
 import { LOGO } from "../data/journeyData";
 import { getJourneyIdentity } from "../services/vibeCodeApi";
 import JourneyLoginModal from "./JourneyLoginModal";
+// @ts-ignore CSS is loaded by the bundler and does not have TypeScript declarations.
 import "./HomeLanding.css";
 
 export const TAGLINE = "Every journey, one partner";

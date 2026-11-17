@@ -231,7 +231,7 @@
 .oxj-mode-tabs {
   padding: 4px;
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 4px;
   border: 1px solid rgba(203,213,225,.58);
   border-radius: 16px;
@@ -250,11 +250,21 @@
   color: #6b778d;
   font-size: 10.5px;
   font-weight: 850;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
   transition:
     transform .24s ease,
     background .24s ease,
     box-shadow .24s ease,
     color .24s ease;
+}
+
+.oxj-mode-tabs button svg {
+  width: 15px;
+  height: 15px;
+  flex: 0 0 auto;
 }
 
 .oxj-mode-tabs button.active {
@@ -277,6 +287,576 @@
 
 .oxj-mode-tabs button:hover {
   transform: translateY(-1px);
+}
+
+/* ---------- Reference-style vertical sidebar navigation ---------- */
+.oxj-sidebar-primary-nav,
+.oxj-sidebar-history-nav {
+  display: grid;
+  gap: 6px;
+}
+
+.oxj-sidebar-primary-nav button,
+.oxj-sidebar-history-nav button {
+  position: relative;
+  display: flex;
+  width: 100%;
+  min-height: 46px;
+  align-items: center;
+  gap: 14px;
+  padding: 0 14px;
+  overflow: hidden;
+  border: 1px solid transparent;
+  border-radius: 12px;
+  color: #17203a;
+  background: transparent;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 750;
+  line-height: 1.2;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    transform .24s cubic-bezier(.2, .8, .2, 1),
+    color .22s ease,
+    border-color .22s ease,
+    background .22s ease,
+    box-shadow .22s ease;
+}
+
+.oxj-sidebar-primary-nav button svg,
+.oxj-sidebar-history-nav button svg {
+  width: 22px;
+  height: 22px;
+  flex: 0 0 22px;
+  color: #26345a;
+  transition: color .22s ease, transform .24s cubic-bezier(.2, .8, .2, 1);
+}
+
+.oxj-sidebar-primary-nav button:hover,
+.oxj-sidebar-history-nav button:hover {
+  border-color: rgba(196, 181, 253, .55);
+  background: rgba(245, 243, 255, .82);
+  transform: translateX(3px);
+  box-shadow: 0 8px 20px rgba(76, 29, 149, .07);
+}
+
+.oxj-sidebar-primary-nav button:hover svg,
+.oxj-sidebar-history-nav button:hover svg {
+  color: #6d28d9;
+  transform: scale(1.06);
+}
+
+.oxj-sidebar-primary-nav button.active {
+  color: #111936;
+  border-color: rgba(221, 214, 254, .58);
+  background: linear-gradient(100deg, rgba(237, 233, 254, .95), rgba(245, 243, 255, .78));
+  box-shadow: inset 3px 0 0 #7c3aed, 0 7px 18px rgba(91, 33, 182, .07);
+}
+
+.oxj-sidebar-primary-nav button.active svg {
+  color: #7c3aed;
+}
+
+.oxj-sidebar-nav-divider {
+  height: 1px;
+  margin: 14px 8px 13px;
+  background: linear-gradient(90deg, transparent, #d9deea 8%, #d9deea 92%, transparent);
+}
+
+.oxj-sidebar-nav-label {
+  margin: 0 10px 8px;
+  color: #6b7892;
+  font-size: 10px;
+  font-weight: 850;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.oxj-sidebar-history-nav button.active {
+  color: #fff;
+  border-color: rgba(109, 40, 217, .68);
+  background: linear-gradient(120deg, #6d28d9, #7c3aed 55%, #5b21b6);
+  box-shadow: 0 10px 22px rgba(109, 40, 217, .24), inset 0 1px 0 rgba(255, 255, 255, .22);
+}
+
+.oxj-sidebar-history-nav button.active::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(115deg, transparent 15%, rgba(255, 255, 255, .13) 48%, transparent 70%);
+  transform: translateX(-110%);
+  animation: oxjSidebarNavSheen .7s ease forwards;
+  pointer-events: none;
+}
+
+.oxj-sidebar-history-nav button.active svg {
+  color: #fff;
+}
+
+@keyframes oxjSidebarNavSheen {
+  to { transform: translateX(110%); }
+}
+
+@media (max-width: 640px) {
+  .oxj-sidebar-primary-nav button,
+  .oxj-sidebar-history-nav button {
+    min-height: 48px;
+    font-size: 13px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .oxj-sidebar-primary-nav button,
+  .oxj-sidebar-history-nav button,
+  .oxj-sidebar-primary-nav button svg,
+  .oxj-sidebar-history-nav button svg {
+    transition-duration: .01ms;
+  }
+
+  .oxj-sidebar-primary-nav button:hover,
+  .oxj-sidebar-history-nav button:hover {
+    transform: none;
+  }
+
+  .oxj-sidebar-history-nav button.active::after {
+    animation: none;
+  }
+}
+
+/* ---------- Compact ChatGPT-style sidebar ---------- */
+.oxj-chatgpt-mode-tabs {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 3px;
+  padding: 3px;
+  border: 1px solid #e2e5eb;
+  border-radius: 13px;
+  background: #eef0f4;
+}
+
+.oxj-chatgpt-mode-tabs button {
+  display: inline-flex;
+  min-width: 0;
+  min-height: 40px;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 0 7px;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  color: #596579;
+  background: transparent;
+  font-family: inherit;
+  font-size: 10.5px;
+  font-weight: 800;
+  line-height: 1.1;
+  cursor: pointer;
+  transition: color .18s ease, background .18s ease, border-color .18s ease, box-shadow .18s ease;
+}
+
+.oxj-chatgpt-mode-tabs button svg {
+  width: 16px;
+  height: 16px;
+  flex: 0 0 16px;
+}
+
+.oxj-chatgpt-mode-tabs button:hover {
+  color: #1f2937;
+  background: rgba(255, 255, 255, .65);
+}
+
+.oxj-chatgpt-mode-tabs button.active {
+  color: #111827;
+  border-color: #dfe3ea;
+  background: #fff;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, .08), 0 4px 12px rgba(15, 23, 42, .04);
+}
+
+.oxj-chatgpt-mode-tabs button.active svg {
+  color: #6d28d9;
+}
+
+.oxj-chatgpt-history {
+  margin-top: 9px;
+  padding-top: 9px;
+  border-top: 1px solid #e1e4ea;
+}
+
+.oxj-chatgpt-history-toggle {
+  display: flex;
+  width: 100%;
+  min-height: 42px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 9px;
+  color: #313b4d;
+  background: transparent;
+  font-family: inherit;
+  font-size: 12.5px;
+  font-weight: 750;
+  cursor: pointer;
+  transition: background .18s ease, color .18s ease;
+}
+
+.oxj-chatgpt-history-toggle:hover,
+.oxj-chatgpt-history-toggle.has-selection {
+  background: #e9ebef;
+}
+
+.oxj-chatgpt-history-toggle.has-selection {
+  color: #4c1d95;
+}
+
+.oxj-chatgpt-history-toggle-copy {
+  display: inline-flex;
+  min-width: 0;
+  align-items: center;
+  gap: 10px;
+}
+
+.oxj-chatgpt-history-toggle-copy svg {
+  width: 18px;
+  height: 18px;
+  flex: 0 0 18px;
+}
+
+.oxj-chatgpt-history-toggle > svg {
+  width: 16px;
+  height: 16px;
+  flex: 0 0 16px;
+  color: #7a8495;
+  transition: transform .24s ease;
+}
+
+.oxj-chatgpt-history-toggle > svg.rotate {
+  transform: rotate(180deg);
+}
+
+.oxj-chatgpt-history-menu {
+  display: grid;
+  grid-template-rows: 0fr;
+  opacity: 0;
+  transition: grid-template-rows .26s cubic-bezier(.2, .8, .2, 1), opacity .2s ease;
+}
+
+.oxj-chatgpt-history-menu.open {
+  grid-template-rows: 1fr;
+  opacity: 1;
+}
+
+.oxj-chatgpt-history-menu-inner {
+  display: grid;
+  min-height: 0;
+  gap: 2px;
+  padding: 0;
+  overflow: hidden;
+  transition: padding .22s ease;
+}
+
+.oxj-chatgpt-history-menu.open .oxj-chatgpt-history-menu-inner {
+  padding: 4px 0 2px;
+}
+
+.oxj-chatgpt-history-menu-inner button {
+  position: relative;
+  display: flex;
+  width: 100%;
+  min-height: 39px;
+  align-items: center;
+  gap: 10px;
+  padding: 0 10px 0 18px;
+  border: 0;
+  border-radius: 9px;
+  color: #4c5668;
+  background: transparent;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+  transition: color .16s ease, background .16s ease;
+}
+
+.oxj-chatgpt-history-menu-inner button svg {
+  width: 17px;
+  height: 17px;
+  flex: 0 0 17px;
+  color: #667085;
+}
+
+.oxj-chatgpt-history-menu-inner button:hover {
+  color: #171f2f;
+  background: #eceef2;
+}
+
+.oxj-chatgpt-history-menu-inner button.active {
+  color: #3f1d83;
+  background: #e8e3f7;
+  font-weight: 750;
+}
+
+.oxj-chatgpt-history-menu-inner button.active::before {
+  content: "";
+  position: absolute;
+  left: 5px;
+  width: 3px;
+  height: 18px;
+  border-radius: 999px;
+  background: #7c3aed;
+}
+
+.oxj-chatgpt-history-menu-inner button.active svg {
+  color: #6d28d9;
+}
+
+@media (max-width: 640px) {
+  .oxj-chatgpt-mode-tabs button { min-height: 42px; font-size: 10px; }
+  .oxj-chatgpt-history-toggle { min-height: 44px; }
+  .oxj-chatgpt-history-menu-inner button { min-height: 42px; font-size: 12.5px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .oxj-chatgpt-history-menu,
+  .oxj-chatgpt-history-menu-inner,
+  .oxj-chatgpt-history-toggle > svg {
+    transition-duration: .01ms;
+  }
+}
+
+/* ---------- Search-first Journeys / History hierarchy ---------- */
+.oxj-sidebar-area-tabs {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 11px;
+}
+
+.oxj-sidebar-area-tabs button {
+  display: inline-flex;
+  min-width: 0;
+  min-height: 46px;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 0 9px;
+  border: 1px solid #dce1e9;
+  border-radius: 13px;
+  color: #536078;
+  background: #fff;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, .035);
+  transition: transform .2s ease, color .2s ease, border-color .2s ease, background .2s ease, box-shadow .2s ease;
+}
+
+.oxj-sidebar-area-tabs button svg {
+  width: 18px;
+  height: 18px;
+  flex: 0 0 18px;
+}
+
+.oxj-sidebar-area-tabs button:hover {
+  color: #4f2a9b;
+  border-color: #cfc4ef;
+  background: #faf9ff;
+  transform: translateY(-1px);
+  box-shadow: 0 7px 16px rgba(76, 29, 149, .08);
+}
+
+.oxj-sidebar-area-tabs button.active {
+  color: #fff;
+  border-color: #6d28d9;
+  background: linear-gradient(135deg, #2563eb, #7c3aed);
+  box-shadow: 0 8px 18px rgba(79, 70, 229, .2);
+}
+
+.oxj-sidebar-journey-types {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 5px;
+  margin-top: 9px;
+  padding: 4px;
+  border: 1px solid #e1e5ec;
+  border-radius: 12px;
+  background: #eef1f5;
+}
+
+.oxj-sidebar-journey-types.has-selection {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.oxj-sidebar-journey-types button {
+  display: inline-flex;
+  min-width: 0;
+  min-height: 38px;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 0 6px;
+  border: 1px solid transparent;
+  border-radius: 9px;
+  color: #657086;
+  background: transparent;
+  font-family: inherit;
+  font-size: 10px;
+  font-weight: 750;
+  cursor: pointer;
+  transition: color .18s ease, background .18s ease, border-color .18s ease, box-shadow .18s ease;
+}
+
+.oxj-sidebar-journey-types button svg {
+  width: 15px;
+  height: 15px;
+  flex: 0 0 15px;
+}
+
+.oxj-sidebar-journey-types button:hover {
+  color: #26324a;
+  background: rgba(255, 255, 255, .68);
+}
+
+.oxj-sidebar-journey-types button.active {
+  color: #25134d;
+  border-color: #dcd5ed;
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, .08);
+}
+
+.oxj-sidebar-journey-types button.active svg {
+  color: #6d28d9;
+}
+
+.oxj-sidebar-history-types {
+  display: grid;
+  gap: 3px;
+  margin-top: 9px;
+  padding: 5px;
+  border: 1px solid #e1e5ec;
+  border-radius: 12px;
+  background: #f3f4f6;
+}
+
+.oxj-sidebar-history-types button {
+  position: relative;
+  display: flex;
+  width: 100%;
+  min-height: 39px;
+  align-items: center;
+  gap: 10px;
+  padding: 0 11px;
+  border: 0;
+  border-radius: 9px;
+  color: #4d596d;
+  background: transparent;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 650;
+  text-align: left;
+  cursor: pointer;
+  transition: color .18s ease, background .18s ease, box-shadow .18s ease;
+}
+
+.oxj-sidebar-history-types button svg {
+  width: 17px;
+  height: 17px;
+  flex: 0 0 17px;
+  color: #68758b;
+}
+
+.oxj-sidebar-history-types button:hover {
+  color: #172033;
+  background: #e8eaee;
+}
+
+.oxj-sidebar-history-types button.active {
+  color: #3f1d83;
+  background: #fff;
+  font-weight: 750;
+  box-shadow: 0 2px 9px rgba(15, 23, 42, .08);
+}
+
+.oxj-sidebar-history-types button.active::before {
+  content: "";
+  position: absolute;
+  left: 4px;
+  width: 3px;
+  height: 18px;
+  border-radius: 999px;
+  background: #7c3aed;
+}
+
+.oxj-sidebar-history-types button.active svg {
+  color: #6d28d9;
+}
+
+@media (max-width: 640px) {
+  .oxj-sidebar-area-tabs button { min-height: 48px; }
+  .oxj-sidebar-journey-types button { min-height: 41px; }
+  .oxj-sidebar-history-types button { min-height: 42px; font-size: 12.5px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .oxj-sidebar-area-tabs button {
+    transition-duration: .01ms;
+  }
+
+  .oxj-sidebar-area-tabs button:hover {
+    transform: none;
+  }
+}
+
+.oxj-history-launch {
+  margin-top: 8px;
+  padding: 4px;
+  border: 1px solid rgba(203, 213, 225, .65);
+  border-radius: 15px;
+  background: linear-gradient(145deg, rgba(241, 244, 249, .9), rgba(255, 255, 255, .96));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .85), 0 5px 14px rgba(15, 23, 42, .04);
+}
+
+.oxj-history-main-tab {
+  display: inline-flex;
+  width: 100%;
+  min-height: 40px;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  border: 1px solid transparent;
+  border-radius: 11px;
+  color: #5f6c82;
+  background: transparent;
+  font-family: inherit;
+  font-style: normal;
+  font-size: 10.5px;
+  font-weight: 850;
+  line-height: normal;
+  letter-spacing: normal;
+  cursor: pointer;
+  transition: transform .24s ease, background .24s ease, box-shadow .24s ease, color .24s ease, border-color .24s ease;
+}
+
+.oxj-history-main-tab svg {
+  width: 16px;
+  height: 16px;
+}
+
+.oxj-history-main-tab:hover {
+  color: #5b4de8;
+  background: rgba(255, 255, 255, .8);
+  transform: translateY(-1px);
+}
+
+.oxj-history-main-tab.active {
+  color: #6d28d9;
+  border-color: rgba(109, 40, 217, .35);
+  background: linear-gradient(145deg, #fff, #f5f3ff);
+  box-shadow: 0 7px 16px rgba(79, 70, 229, .12), inset 0 1px 0 #fff;
 }
 
 /* ---------- Search / select ---------- */
@@ -1098,7 +1678,8 @@
 
 @media (max-width:640px) {
   .oxj-sidebar-head img { width: 158px; }
-  .oxj-mode-tabs button { font-size:9.8px; }
+  .oxj-mode-tabs button,
+  .oxj-history-main-tab { font-size:9.8px; }
 
   .oxj-empty {
     padding:18px 14px 10px;
@@ -1141,6 +1722,7 @@
   .oxj-rail-button,
   .oxj-collapse-button,
   .oxj-mode-tabs button,
+  .oxj-history-main-tab,
   .oxj-search input,
   .oxj-select-wrap select,
   .oxj-platform-trigger > svg,
@@ -1284,7 +1866,8 @@
 @media (max-width: 360px) {
   .oxj-mobile-panel { width: 94vw; }
   .oxj-sidebar-scroll { padding: 10px; }
-  .oxj-mode-tabs button { font-size: 9px; }
+  .oxj-mode-tabs button,
+  .oxj-history-main-tab { font-size: 9px; }
   .oxj-search input { height: 44px; }
 }
 
@@ -1953,7 +2536,7 @@
   .oxj-sidebar-head img{width:164px;height:34px}
   .oxj-sidebar-scroll{padding:11px}
   .oxj-mode-tabs{border-radius:14px}
-  .oxj-mode-tabs button{min-height:38px;font-size:9.5px}
+  .oxj-mode-tabs button,.oxj-history-main-tab{min-height:38px;font-size:9.5px}
   .oxj-search input{height:43px}
   .oxj-select-wrap select{min-height:46px}
 }
@@ -2156,39 +2739,376 @@
   .oxj-logout-actions { grid-template-columns: 1fr; }
 }
 
-/* History / Partner chats switch under the mode tabs */
+/* History centre, revealed from the main History tab */
+.oxj-history-hub {
+  margin-top: 10px;
+  padding: 10px;
+  border: 1px solid rgba(196, 181, 253, .52);
+  border-radius: 18px;
+  background:
+    radial-gradient(circle at 12% -10%, rgba(99, 102, 241, .15), transparent 42%),
+    linear-gradient(145deg, rgba(255, 255, 255, .98), rgba(248, 247, 255, .96));
+  box-shadow:
+    0 12px 28px rgba(76, 29, 149, .07),
+    inset 0 1px 0 rgba(255, 255, 255, .9);
+}
+
+.oxj-history-hub-head {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 2px 3px 9px;
+  color: #182033;
+}
+
+.oxj-history-hub-head > span:last-child {
+  display: grid;
+  gap: 1px;
+}
+
+.oxj-history-hub-head strong {
+  font-size: 12px;
+  line-height: 1.2;
+}
+
+.oxj-history-hub-head small {
+  color: #7c879d;
+  font-size: 9.5px;
+}
+
+.oxj-history-hub-mark {
+  display: grid;
+  width: 30px;
+  height: 30px;
+  place-items: center;
+  border-radius: 10px;
+  color: #fff;
+  background: linear-gradient(145deg, #2563eb, #7c3aed);
+  box-shadow: 0 7px 15px rgba(79, 70, 229, .25);
+}
+
+.oxj-history-hub-mark svg {
+  width: 16px;
+  height: 16px;
+}
+
 .oxj-view-tabs {
   display: grid;
-  grid-template-columns: 0.7fr 1fr 1.3fr;
-  gap: 6px;
-  margin-top: 8px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 7px;
+  perspective: 800px;
 }
 .oxj-view-tabs button,
 .oxj-view-tabs a {
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
+  gap: 6px;
   text-align: center;
   text-decoration: none;
   min-width: 0;
-  padding: 8px 10px;
-  border: 1px solid rgba(203,213,225,.7);
-  border-radius: 12px;
-  background: #fff;
+  min-height: 78px;
+  padding: 8px 5px;
+  border: 1px solid rgba(203, 213, 225, .76);
+  border-radius: 14px;
+  background: linear-gradient(155deg, #fff 8%, #f8fafc 100%);
   color: #475569;
   font: inherit;
-  font-size: 11px;
-  font-weight: 700;
+  font-size: 10px;
+  line-height: 1.18;
+  font-weight: 800;
   cursor: pointer;
+  transform: translateZ(0);
+  transform-origin: 50% 100%;
+  box-shadow: 0 3px 0 #e2e8f0, 0 7px 14px rgba(15, 23, 42, .05);
+  transition:
+    transform .34s cubic-bezier(.2, .85, .25, 1.35),
+    box-shadow .34s ease,
+    border-color .25s ease,
+    color .25s ease,
+    background .25s ease;
 }
-.oxj-view-tabs button:hover, .oxj-view-tabs a:hover { background: #f1f5f9; }
-.oxj-view-tabs button.active { background: #0f172a; color: #fff; border-color: #0f172a; }
+
+.oxj-history-tab-icon {
+  display: grid;
+  width: 30px;
+  height: 30px;
+  place-items: center;
+  border: 1px solid rgba(196, 181, 253, .6);
+  border-radius: 10px;
+  color: #5b4de8;
+  background: #f5f3ff;
+  transition: transform .34s cubic-bezier(.2, .85, .25, 1.35), background .25s ease;
+}
+
+.oxj-history-tab-icon svg {
+  width: 16px;
+  height: 16px;
+}
+
+.oxj-view-tabs button:hover,
+.oxj-view-tabs a:hover {
+  z-index: 1;
+  color: #4f46e5;
+  border-color: rgba(129, 140, 248, .7);
+  background: linear-gradient(155deg, #fff, #eef2ff);
+  transform: translateY(-5px) rotateX(7deg) scale(1.025);
+  box-shadow: 0 7px 0 #c7d2fe, 0 15px 25px rgba(79, 70, 229, .17);
+}
+
+.oxj-view-tabs button:hover .oxj-history-tab-icon {
+  transform: translateY(-2px) rotate(-4deg) scale(1.08);
+}
+
+.oxj-view-tabs button:active {
+  transform: translateY(-1px) rotateX(2deg) scale(.99);
+  box-shadow: 0 3px 0 #c7d2fe, 0 7px 12px rgba(79, 70, 229, .12);
+}
+
+.oxj-view-tabs button.active {
+  color: #fff;
+  border-color: #5b4de8;
+  background: linear-gradient(145deg, #2563eb, #7c3aed);
+  box-shadow: 0 5px 0 #4338ca, 0 12px 22px rgba(79, 70, 229, .25);
+}
+
+.oxj-view-tabs button.active .oxj-history-tab-icon {
+  color: #fff;
+  border-color: rgba(255, 255, 255, .28);
+  background: rgba(255, 255, 255, .16);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .3);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .oxj-view-tabs button,
+  .oxj-history-tab-icon {
+    transition-duration: .01ms;
+  }
+
+  .oxj-view-tabs button:hover,
+  .oxj-view-tabs button:active {
+    transform: none;
+  }
+}
 
 /* Partner chat rows are links; keep them looking like the Chat History rows */
 a.oxj-history-item,
 a.oxj-history-item:hover,
 a.oxj-history-item * {
   text-decoration: none;
+}
+
+/* ---------- OxyJourneysSidebar.tsx reference treatment ---------- */
+.oxj-sidebar-scroll > .oxj-search {
+  margin-top: 2px;
+}
+
+.oxj-sidebar-scroll > .oxj-search input {
+  height: 50px;
+  border-color: #e0e6f0;
+  border-radius: 13px;
+  background: #f8faff;
+  color: #17223b;
+  box-shadow: none;
+}
+
+.oxj-sidebar-scroll > .oxj-search input:focus {
+  border-color: #6a8dff;
+  box-shadow: 0 0 0 3px #eaf0ff;
+}
+
+.oxj-sidebar-area-tabs {
+  gap: 4px;
+  margin-top: 16px;
+  padding: 4px;
+  border: 1px solid #e8edf5;
+  border-radius: 13px;
+  background: #f3f5fa;
+}
+
+.oxj-sidebar-area-tabs button {
+  min-height: 42px;
+  border: 0;
+  border-radius: 10px;
+  color: #62718c;
+  background: transparent;
+  box-shadow: none;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.oxj-sidebar-area-tabs button:hover {
+  color: #155dfb;
+  border-color: transparent;
+  background: rgba(255, 255, 255, .72);
+  transform: none;
+  box-shadow: none;
+}
+
+.oxj-sidebar-area-tabs button.active {
+  color: #155dfb;
+  border-color: transparent;
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(36, 58, 109, .07);
+}
+
+.oxj-reference-eyebrow {
+  margin: 18px 9px 9px;
+  color: #95a1b4;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+}
+
+.oxj-reference-sections {
+  display: grid;
+  gap: 3px;
+}
+
+.oxj-reference-sections button {
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr) 18px;
+  width: 100%;
+  min-height: 47px;
+  align-items: center;
+  gap: 11px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 11px;
+  color: #34435d;
+  background: transparent;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  text-align: left;
+  cursor: pointer;
+  transition: color .18s ease, background .18s ease;
+}
+
+.oxj-reference-sections button > svg:first-child {
+  width: 20px;
+  height: 20px;
+  color: currentColor;
+}
+
+.oxj-reference-sections button > svg:last-child {
+  width: 16px;
+  height: 16px;
+  color: #91a0b6;
+  transform: rotate(-90deg);
+  transition: transform .18s ease;
+}
+
+.oxj-reference-sections button:hover {
+  background: #f6f8fc;
+}
+
+.oxj-reference-sections button.active {
+  color: #155dfb;
+  background: #eef3ff;
+}
+
+.oxj-reference-sections button.active > svg:last-child {
+  color: #155dfb;
+  transform: rotate(0);
+}
+
+.oxj-reference-entry-section {
+  margin-top: 4px;
+}
+
+.oxj-reference-subtitle {
+  margin: 19px 12px 8px;
+  color: #91a0b6;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .7px;
+  text-transform: uppercase;
+}
+
+.oxj-reference-entry-list {
+  display: grid;
+  gap: 1px;
+}
+
+.oxj-reference-entry {
+  display: grid;
+  grid-template-columns: 7px minmax(0, 1fr) 18px;
+  width: 100%;
+  min-height: 41px;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 13px;
+  border: 0;
+  border-radius: 9px;
+  color: #4c5c76;
+  background: transparent;
+  font-family: inherit;
+  font-size: 12.5px;
+  line-height: 1.3;
+  text-align: left;
+  cursor: pointer;
+  transition: color .16s ease, background .16s ease;
+}
+
+.oxj-reference-entry:hover {
+  background: #f6f8fc;
+}
+
+.oxj-reference-entry.selected {
+  color: #155dfb;
+  background: #eef3ff;
+  font-weight: 700;
+}
+
+.oxj-reference-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #c5cedb;
+}
+
+.oxj-reference-entry.selected .oxj-reference-dot {
+  background: #155dfb;
+}
+
+.oxj-reference-check {
+  color: #155dfb;
+  font-size: 12px;
+  font-weight: 850;
+  text-align: center;
+}
+
+@media (min-width: 1024px) {
+  .oxj-desktop-sidebar.expanded,
+  .oxj-sidebar {
+    width: 340px;
+  }
+
+  .oxj-workspace.sidebar-expanded {
+    padding-left: 340px;
+  }
+
+  .oxj-sidebar-head {
+    min-height: 76px;
+    padding: 0 14px 0 19px;
+  }
+
+  .oxj-sidebar-head img {
+    width: 190px;
+    height: auto;
+  }
+
+  .oxj-sidebar-scroll {
+    padding: 14px;
+  }
+}
+
+@media (max-width: 640px) {
+  .oxj-reference-sections button { min-height: 49px; font-size: 13.5px; }
+  .oxj-reference-entry { min-height: 44px; font-size: 13px; }
 }
 
 /* ---------- Mobile polish (kept last so it wins over the layers above) ---------- */
@@ -2345,4 +3265,772 @@ a.oxj-history-item * {
 @media (prefers-reduced-motion: reduce) {
   .oxj-mobile-drawer,
   .oxj-mobile-panel { animation: none; }
+}
+
+/* ==========================================================================
+   Premium sidebar v4: white, very rounded, compact, calm.
+   Kept last on purpose so it wins over every earlier sidebar layer.
+   ========================================================================== */
+.oxj-sidebar,
+.oxj-rail {
+  --sb-ink: #0f172a;
+  --sb-text: #1e293b;
+  --sb-sub: #475569;
+  --sb-muted: #5b6b82;
+  --sb-line: #e8ecf3;
+  --sb-hover: #f3f5fb;
+  --sb-field: #f3f5fa;
+  --sb-accent: #3d3ad8;
+  --sb-accent-ink: #2b2a95;
+  --sb-tint: #eceeff;
+  --sb-grad: linear-gradient(135deg, #3f5bea 0%, #5b45e0 100%);
+  --sb-glow: 0 8px 18px -8px rgba(67, 56, 202, .55);
+}
+
+/* ---------- Floating rounded shell (desktop) ---------- */
+@media (min-width: 1024px) {
+  .oxj-desktop-sidebar {
+    inset: 10px auto 10px 10px;
+    border: 1px solid #eceff5;
+    border-radius: 26px;
+    background: #fff;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, .04), 0 18px 40px -18px rgba(15, 23, 42, .18);
+    backdrop-filter: none;
+  }
+
+  .oxj-desktop-sidebar.expanded { width: 280px; }
+
+  /* visible so the collapsed rail's account popover is not clipped */
+  .oxj-desktop-sidebar.collapsed { width: 58px; overflow: visible; }
+
+  .oxj-workspace.sidebar-expanded { padding-left: 300px; }
+  .oxj-workspace.sidebar-collapsed { padding-left: 78px; }
+
+  .oxj-sidebar { width: 278px; }
+  .oxj-rail { width: 56px; }
+}
+
+.oxj-rail { background: transparent; }
+
+.oxj-rail .oxj-rail-button { border-radius: 16px; }
+
+.oxj-rail .oxj-rail-button.is-life-active,
+.oxj-rail .oxj-rail-button.is-platform-active {
+  border-color: transparent;
+  background: var(--sb-tint);
+  color: var(--sb-accent-ink);
+  box-shadow: none;
+}
+
+.oxj-avatar-fallback { background: var(--sb-grad, linear-gradient(135deg, #3f5bea, #5b45e0)); }
+.oxj-avatar { box-shadow: 0 0 0 2px #fff, 0 4px 10px rgba(79, 70, 229, .22); }
+
+/* ---------- Surface + header ---------- */
+.oxj-sidebar {
+  background: #fff;
+  border-radius: inherit;
+}
+
+.oxj-sidebar .oxj-sidebar-head {
+  min-height: 58px;
+  padding: 0 14px 0 18px;
+  border: 0;
+  background: transparent;
+  backdrop-filter: none;
+}
+
+.oxj-sidebar .oxj-sidebar-head img {
+  width: auto;
+  max-width: 160px;
+  height: 28px;
+  object-fit: contain;
+  object-position: left center;
+}
+
+.oxj-sidebar .oxj-collapse-button {
+  width: 32px;
+  min-width: 32px;
+  height: 32px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--sb-field);
+  color: var(--sb-sub);
+  font-size: 19px;
+  box-shadow: none;
+}
+
+.oxj-sidebar .oxj-collapse-button:hover {
+  transform: none;
+  color: var(--sb-accent);
+  background: var(--sb-tint);
+}
+
+.oxj-sidebar .oxj-sidebar-scroll {
+  padding: 2px 14px 12px;
+  background: transparent;
+}
+
+/* ---------- Search: pill ---------- */
+.oxj-sidebar .oxj-sidebar-scroll > .oxj-search {
+  margin-top: 2px;
+}
+
+.oxj-sidebar .oxj-sidebar-scroll > .oxj-search input {
+  height: 42px;
+  padding: 0 34px 0 40px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  background: var(--sb-field);
+  color: var(--sb-ink);
+  font-size: 13px;
+  font-weight: 550;
+  box-shadow: none;
+}
+
+.oxj-sidebar .oxj-sidebar-scroll > .oxj-search input::placeholder {
+  color: var(--sb-muted);
+  font-weight: 500;
+  opacity: 1;
+}
+
+.oxj-sidebar .oxj-sidebar-scroll > .oxj-search input:focus {
+  border-color: #c3c8fa;
+  background: #fff;
+  box-shadow: 0 0 0 4px rgba(79, 70, 229, .10);
+}
+
+.oxj-sidebar .oxj-sidebar-scroll > .oxj-search > svg {
+  left: 15px;
+  color: var(--sb-muted);
+}
+
+/* ---------- Journeys / History: two separate pills, only the selected one is filled ---------- */
+.oxj-sidebar .oxj-sidebar-area-tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  margin: 10px 0 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.oxj-sidebar .oxj-sidebar-area-tabs button {
+  display: inline-flex;
+  min-width: 0;
+  min-height: 40px;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--sb-field);
+  color: var(--sb-text);
+  font-size: 13px;
+  font-weight: 650;
+  box-shadow: none;
+  transform: none;
+  transition: background .18s ease, color .18s ease, box-shadow .18s ease;
+}
+
+.oxj-sidebar .oxj-sidebar-area-tabs button::after { content: none; }
+
+/* text-only tabs, like the reference */
+.oxj-sidebar .oxj-sidebar-area-tabs button svg { display: none; }
+
+.oxj-sidebar .oxj-sidebar-area-tabs button:hover {
+  background: #e8ecf6;
+  color: var(--sb-ink);
+  box-shadow: none;
+  transform: none;
+}
+
+.oxj-sidebar .oxj-sidebar-area-tabs button.active {
+  background: var(--sb-grad);
+  color: #fff;
+  font-weight: 750;
+  box-shadow: var(--sb-glow);
+}
+
+/* ---------- Headings ---------- */
+.oxj-sidebar .oxj-reference-eyebrow,
+.oxj-sidebar .oxj-reference-subtitle {
+  display: block;
+  width: auto;
+  min-height: 0;
+  margin: 16px 8px 8px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--sb-muted);
+  font-size: 10.5px;
+  font-weight: 800;
+  letter-spacing: .1em;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.oxj-sidebar .oxj-reference-eyebrow::before,
+.oxj-sidebar .oxj-reference-eyebrow::after,
+.oxj-sidebar .oxj-reference-subtitle::after {
+  content: none;
+}
+
+
+/* ---------- Primary rows: big-radius pills, plain icons ---------- */
+.oxj-sidebar .oxj-reference-sections {
+  gap: 3px;
+}
+
+.oxj-sidebar .oxj-reference-sections button {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  width: 100%;
+  min-height: 40px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 14px;
+  background: transparent;
+  color: var(--sb-text);
+  font-size: 13px;
+  font-weight: 600;
+  box-shadow: none;
+  transform: none;
+  transition: background .18s ease, color .18s ease, box-shadow .18s ease;
+}
+
+.oxj-sidebar .oxj-reference-sections button:hover {
+  background: var(--sb-hover);
+  color: var(--sb-ink);
+  box-shadow: none;
+  transform: none;
+}
+
+.oxj-sidebar .oxj-reference-sections button.active {
+  background: var(--sb-grad);
+  color: #fff;
+  font-weight: 700;
+  box-shadow: var(--sb-glow);
+}
+
+.oxj-sidebar .oxj-ref-icon {
+  display: grid;
+  flex: 0 0 20px;
+  width: 20px;
+  height: 20px;
+  place-items: center;
+  border-radius: 0;
+  background: transparent;
+  color: #3b4a63;
+  box-shadow: none;
+}
+
+.oxj-sidebar .oxj-ref-icon svg {
+  width: 18px;
+  height: 18px;
+}
+
+.oxj-sidebar .oxj-reference-sections button.active .oxj-ref-icon {
+  background: transparent;
+  color: #fff;
+  box-shadow: none;
+}
+
+.oxj-sidebar .oxj-ref-label {
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
+  text-align: left;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.oxj-sidebar .oxj-ref-count {
+  min-width: 22px;
+  height: 20px;
+  padding: 0 7px;
+  border-radius: 999px;
+  display: inline-grid;
+  place-items: center;
+  background: #e8ecf5;
+  color: var(--sb-text);
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.oxj-sidebar .oxj-reference-sections button.active .oxj-ref-count {
+  background: rgba(255, 255, 255, .22);
+  color: #fff;
+}
+
+.oxj-sidebar .oxj-reference-sections button .oxj-ref-chevron {
+  width: 14px;
+  height: 14px;
+  flex: 0 0 14px;
+  color: #64748b;
+  transform: rotate(-90deg);
+  transition: transform .2s ease, color .2s ease;
+}
+
+.oxj-sidebar .oxj-reference-sections button.active .oxj-ref-chevron {
+  color: #fff;
+  transform: rotate(0);
+}
+
+/* ---------- Secondary rows (life stages / professions) ---------- */
+.oxj-sidebar .oxj-reference-entry-list {
+  gap: 7px;
+}
+
+.oxj-sidebar .oxj-reference-entry {
+  grid-template-columns: 8px minmax(0, 1fr) 16px;
+  min-height: 32px;
+  gap: 10px;
+  padding: 5px 12px;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+  color: var(--sb-text);
+  font-size: 12px;
+  font-weight: 600;
+  box-shadow: none;
+  transform: none;
+}
+
+.oxj-sidebar .oxj-reference-entry:hover {
+  background: var(--sb-hover);
+  color: var(--sb-ink);
+  box-shadow: none;
+  transform: none;
+}
+
+.oxj-sidebar .oxj-reference-entry.selected {
+  background: var(--sb-tint);
+  color: var(--sb-accent-ink);
+  box-shadow: none;
+  font-weight: 700;
+}
+
+.oxj-sidebar .oxj-reference-dot {
+  width: 6px;
+  height: 6px;
+  border: 0;
+  background: #8391a7;
+  box-shadow: none;
+}
+
+.oxj-sidebar .oxj-reference-entry.selected .oxj-reference-dot {
+  background: var(--sb-accent);
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, .15);
+}
+
+.oxj-sidebar .oxj-reference-check {
+  color: var(--sb-accent);
+  font-size: 12px;
+}
+
+/* ---------- History + partner lists ---------- */
+.oxj-sidebar .oxj-history-section {
+  margin-top: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.oxj-sidebar .oxj-history-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin: 14px 8px 8px;
+  padding: 0;
+}
+
+.oxj-sidebar .oxj-history-head > div {
+  display: block;
+}
+
+.oxj-sidebar .oxj-history-head > div::after { content: none; }
+
+.oxj-sidebar .oxj-history-head .oxj-section-label,
+.oxj-sidebar .oxj-section-label {
+  margin: 0;
+  color: var(--sb-muted);
+  font-size: 10.5px;
+  font-weight: 800;
+  letter-spacing: .1em;
+}
+
+.oxj-sidebar .oxj-history-head small { display: none; }
+
+.oxj-sidebar .oxj-history-count {
+  min-width: 22px;
+  height: 20px;
+  padding: 0 7px;
+  background: #e8ecf5;
+  color: var(--sb-text);
+  box-shadow: none;
+  font-size: 11px;
+}
+
+.oxj-sidebar .oxj-history-list {
+  gap: 2px;
+}
+
+.oxj-sidebar .oxj-history-item {
+  min-height: 38px;
+  gap: 10px;
+  padding: 5px 10px;
+  border: 0;
+  border-radius: 14px;
+  background: transparent;
+  color: var(--sb-text);
+  box-shadow: none;
+  transform: none;
+}
+
+.oxj-sidebar .oxj-history-item:hover {
+  background: var(--sb-hover);
+  color: var(--sb-ink);
+  box-shadow: none;
+  transform: none;
+}
+
+.oxj-sidebar .oxj-history-item[aria-current="true"] {
+  background: var(--sb-tint);
+}
+
+.oxj-sidebar .oxj-history-bubble {
+  flex: 0 0 22px;
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  background: #e8ecf5;
+  color: #334155;
+  box-shadow: none;
+  font-size: 11px;
+  line-height: 1;
+}
+
+.oxj-sidebar .oxj-history-item[aria-current="true"] .oxj-history-bubble {
+  background: var(--sb-grad);
+  color: #fff;
+}
+
+.oxj-sidebar .oxj-session-history-item { min-height: 38px; }
+
+.oxj-sidebar .oxj-session-history-copy { gap: 2px; }
+
+.oxj-sidebar .oxj-session-history-copy strong {
+  color: var(--sb-ink);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.oxj-sidebar .oxj-session-history-copy small {
+  color: var(--sb-sub);
+  font-size: 11px;
+  line-height: 1.3;
+}
+
+.oxj-sidebar .oxj-list-empty {
+  margin: 10px 2px;
+  padding: 16px 12px;
+  border: 1px dashed #cfd6e4;
+  border-radius: 16px;
+  color: var(--sb-sub);
+  font-size: 12px;
+  text-align: center;
+}
+
+/* ---------- Platform accordion (hidden behind SHOW_PLATFORM_JOURNEYS) ---------- */
+.oxj-sidebar .oxj-sidebar-section { margin-top: 4px; }
+
+.oxj-sidebar .oxj-platform-list {
+  border: 1px solid var(--sb-line);
+  border-radius: 18px;
+  background: #fff;
+  box-shadow: none;
+}
+
+.oxj-sidebar .oxj-platform-item.active { background: #fafaff; }
+.oxj-sidebar .oxj-platform-trigger strong { font-size: 12.5px; color: var(--sb-text); }
+.oxj-sidebar .oxj-journey-row strong { font-size: 12px; color: var(--sb-text); }
+.oxj-sidebar .oxj-count { font-size: 11px; color: var(--sb-text); }
+
+/* ---------- Footer / account ---------- */
+.oxj-sidebar .oxj-sidebar-footer {
+  gap: 0;
+  padding: 8px 14px 14px;
+  border-top: 1px solid var(--sb-line);
+  background: #fff;
+}
+
+.oxj-sidebar .oxj-sidebar-footer .oxj-profile {
+  min-height: 48px;
+  padding: 6px 10px;
+  border: 0;
+  border-radius: 18px;
+  background: transparent;
+  box-shadow: none;
+  transform: none;
+}
+
+.oxj-sidebar .oxj-sidebar-footer .oxj-profile:hover,
+.oxj-sidebar .oxj-sidebar-footer .oxj-profile.is-menu-open {
+  background: var(--sb-hover);
+  box-shadow: none;
+  transform: none;
+}
+
+.oxj-sidebar .oxj-sidebar-footer .oxj-profile-text strong {
+  color: var(--sb-ink);
+  font-size: 13px;
+}
+
+.oxj-sidebar .oxj-sidebar-footer .oxj-profile-text small {
+  color: var(--sb-sub);
+  font-size: 11.5px;
+}
+
+.oxj-sidebar .oxj-profile-popover { border-radius: 20px; }
+
+/* ---------- Business Card History: same pattern as the other lists ----------
+   BusinessCardHistory.tsx is wrapped in .oxj-bch-wrap. Selectors are element/attribute based so
+   they work whatever class names the component uses internally, and the colour/background
+   resets use !important so any dark styling inside the component cannot leak through. */
+.oxj-sidebar .oxj-bch-wrap,
+.oxj-sidebar .oxj-bch-wrap > * {
+  margin-left: 0;
+  margin-right: 0;
+  padding: 0;
+  border-radius: 0;
+  border-left: 0 !important;
+  border-right: 0 !important;
+  border-bottom: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  color: var(--sb-text) !important;
+}
+
+.oxj-sidebar .oxj-bch-wrap > * { border-top: 0 !important; margin-top: 0; margin-bottom: 0; padding: 0 !important; }
+
+.oxj-sidebar .oxj-bch-wrap :is(header, div[class*="head"]) {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin: 14px 8px 8px;
+  padding: 0;
+}
+
+.oxj-sidebar .oxj-bch-wrap :is(h1, h2, h3, h4, h5, h6, [class*="title"], [class*="heading"]) {
+  margin: 0;
+  color: var(--sb-muted) !important;
+  font-size: 10.5px;
+  font-weight: 800;
+  letter-spacing: .1em;
+  line-height: 1.2;
+  text-transform: uppercase;
+}
+
+.oxj-sidebar .oxj-bch-wrap > :is(h1, h2, h3, h4, h5, h6) {
+  margin: 14px 8px 8px;
+}
+
+.oxj-sidebar .oxj-bch-wrap :is(ul, ol) {
+  display: grid;
+  gap: 2px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.oxj-sidebar .oxj-bch-wrap :is(li, [class*="item"], [class*="row"]) {
+  display: flex;
+  min-height: 32px;
+  align-items: center;
+  gap: 10px;
+  padding: 5px 12px;
+  border: 0 !important;
+  border-radius: 12px;
+  background: transparent !important;
+  color: var(--sb-text) !important;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.3;
+  list-style: none;
+  text-align: left;
+  cursor: pointer;
+  box-shadow: none !important;
+  transition: background .16s ease, color .16s ease;
+}
+
+.oxj-sidebar .oxj-bch-wrap :is(li, [class*="item"], [class*="row"]):hover {
+  background: var(--sb-hover) !important;
+  color: var(--sb-ink) !important;
+}
+
+.oxj-sidebar .oxj-bch-wrap :is(li, [class*="item"], [class*="row"]):is(.active, .selected, [aria-current="true"], [aria-pressed="true"]) {
+  background: var(--sb-tint) !important;
+  color: var(--sb-accent-ink) !important;
+  font-weight: 700;
+}
+
+/* the small "..." menu button next to the heading */
+.oxj-sidebar .oxj-bch-wrap :is([class*="more"], [class*="menu"], [class*="action"]) {
+  min-height: 0;
+  padding: 2px 10px;
+  border: 0 !important;
+  border-radius: 999px;
+  background: var(--sb-field) !important;
+  color: var(--sb-text) !important;
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+/* ---------- Mobile drawer ---------- */
+@media (max-width: 1023px) {
+  .oxj-mobile-panel { background: #fff; }
+  .oxj-sidebar { border-radius: 0; }
+}
+
+@media (max-width: 640px) {
+  .oxj-sidebar .oxj-sidebar-area-tabs button { min-height: 44px; }
+  .oxj-sidebar .oxj-reference-sections button { min-height: 44px; font-size: 13px; }
+  .oxj-sidebar .oxj-reference-entry { min-height: 38px; font-size: 12.5px; }
+  .oxj-sidebar .oxj-history-item { min-height: 42px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .oxj-sidebar .oxj-sidebar-area-tabs button,
+  .oxj-sidebar .oxj-reference-sections button,
+  .oxj-sidebar .oxj-ref-chevron { transition-duration: .01ms; }
+}
+
+/* ---------- Fixed top, scrolling list ----------
+   .oxj-sidebar-scroll no longer scrolls; only .oxj-sidebar-list (the journey / history items) does. */
+.oxj-sidebar .oxj-sidebar-scroll {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-height: 0;
+}
+
+.oxj-sidebar .oxj-sidebar-scroll > :not(.oxj-sidebar-list) {
+  flex: 0 0 auto;
+}
+
+.oxj-sidebar .oxj-sidebar-list {
+  flex: 1 1 auto;
+  min-height: 0;
+  margin-top: 10px;
+  padding-right: 4px;
+  border-top: 1px solid var(--sb-line);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: #cdd5e3 transparent;
+}
+
+.oxj-sidebar .oxj-sidebar-list::-webkit-scrollbar { display: block; width: 6px; height: 6px; }
+.oxj-sidebar .oxj-sidebar-list::-webkit-scrollbar-thumb { border-radius: 999px; background: #cdd5e3; }
+.oxj-sidebar .oxj-sidebar-list::-webkit-scrollbar-track { background: transparent; }
+
+/* headings inside the list stay pinned while its items scroll under them */
+.oxj-sidebar .oxj-reference-subtitle,
+.oxj-sidebar .oxj-history-head {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  margin: 0;
+  padding: 12px 8px 6px;
+  background: #fff;
+}
+
+/* very short windows: fall back to scrolling the whole panel so nothing is unreachable */
+@media (max-height: 560px) {
+  .oxj-sidebar .oxj-sidebar-scroll { overflow-y: auto; }
+  .oxj-sidebar .oxj-sidebar-list { overflow: visible; flex: 0 0 auto; }
+}
+
+/* Keep the sidebar flush with the chat workspace as one continuous page. */
+.oxj-sidebar,
+.oxj-sidebar-head,
+.oxj-sidebar-scroll,
+.oxj-sidebar-footer,
+.oxj-workspace {
+  background: #fff !important;
+}
+
+@media (min-width: 1024px) {
+  .oxj-desktop-sidebar {
+    inset: 0 auto 0 0;
+    border: 0;
+    border-right: 1px solid #e8ecf3;
+    border-radius: 0;
+    background: #fff;
+    box-shadow: none;
+    backdrop-filter: none;
+  }
+
+  .oxj-desktop-sidebar.expanded { width: 280px; }
+  .oxj-workspace.sidebar-expanded { padding-left: 280px; }
+  .oxj-sidebar { width: 278px; }
+}
+
+.oxj-sidebar .oxj-popover-btn.oxj-popover-logout,
+.oxj-rail .oxj-popover-btn.oxj-popover-logout {
+  min-height: 42px;
+  padding: 10px 12px;
+  border: 1px solid #ffd7d7;
+  border-radius: 14px;
+  color: #c52d43;
+  background: linear-gradient(135deg, #fff8f8, #fff1f2);
+  font-size: 13px;
+  font-weight: 750;
+  box-shadow: 0 3px 9px rgba(190, 35, 55, .055);
+  transition: transform .2s cubic-bezier(.2, .8, .2, 1), border-color .2s ease, background .2s ease, box-shadow .2s ease;
+}
+
+.oxj-sidebar .oxj-popover-btn.oxj-popover-logout svg,
+.oxj-rail .oxj-popover-btn.oxj-popover-logout svg {
+  width: 18px;
+  height: 18px;
+  color: #d9364f;
+}
+
+.oxj-sidebar .oxj-popover-btn.oxj-popover-logout:hover,
+.oxj-rail .oxj-popover-btn.oxj-popover-logout:hover {
+  transform: translateY(-1px);
+  border-color: #f5a8b0;
+  color: #a91f36;
+  background: linear-gradient(135deg, #fff0f1, #ffe7ea);
+  box-shadow: 0 7px 16px rgba(190, 35, 55, .13), 0 0 0 3px rgba(239, 68, 68, .055);
+}
+
+.oxj-sidebar .oxj-popover-btn.oxj-popover-logout:active,
+.oxj-rail .oxj-popover-btn.oxj-popover-logout:active {
+  transform: scale(.985);
+  box-shadow: 0 3px 8px rgba(190, 35, 55, .1);
+}
+
+.oxj-sidebar .oxj-popover-btn.oxj-popover-logout:focus-visible,
+.oxj-rail .oxj-popover-btn.oxj-popover-logout:focus-visible {
+  outline: 3px solid rgba(239, 68, 68, .22);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .oxj-sidebar .oxj-popover-btn.oxj-popover-logout,
+  .oxj-rail .oxj-popover-btn.oxj-popover-logout { transition: none; }
 }
