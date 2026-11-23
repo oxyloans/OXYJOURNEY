@@ -57,7 +57,7 @@ export default function PartnerLeadPage() {
   return (
     <main className="plp-root">
       <section className="plp-shell">
-        <header className="plp-header"><a href="/oxy-journey" className="plp-brand"><img src={LOGO} alt="OXY Journeys" /><small>Every journey, one partner</small></a><a className="plp-home" href="/oxy-journey">Explore journeys <span aria-hidden="true">↗</span></a></header>
+        <header className="plp-header"><a href="/oxy-journey" className="plp-brand"><img src={LOGO} width={340} height={63} decoding="async" alt="OXY Journeys" /><small>Every journey, one partner</small></a><a className="plp-home" href="/oxy-journey">Explore journeys <span aria-hidden="true">↗</span></a></header>
         <div className="plp-heading"><span className="plp-eyebrow">YOUR CONNECTIONS</span><h1>Your next connection starts here.</h1><p>A matched lead from your network. Review the request and start a conversation.</p></div>
         <article className="plp-card">
         <div className="plp-intro"><span className="plp-eyebrow">A PERSONAL INTRODUCTION</span>

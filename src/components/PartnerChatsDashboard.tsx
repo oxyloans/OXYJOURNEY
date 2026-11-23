@@ -58,7 +58,7 @@ export default function PartnerChatsDashboard() {
   }
   useEffect(() => { if (selected) setSessionRoleOverride(selected, "PARTNER"); }, [selected]);
   return <div className={`pc-dashboard ${selected ? "pc-has-selection" : ""}`}>
-    <header className="pc-header"><a href="/" className="pc-brand"><img src={LOGO} alt="OXY Journeys" /></a><div><span className="pc-label">YOUR CONNECTIONS</span><h1>Partner chats</h1></div><a href="/">Explore journeys ↗</a></header>
+    <header className="pc-header"><a href="/" className="pc-brand"><img src={LOGO} width={340} height={63} decoding="async" alt="OXY Journeys" /></a><div><span className="pc-label">YOUR CONNECTIONS</span><h1>Partner chats</h1></div><a href="/">Explore journeys ↗</a></header>
     <main className="pc-layout">
       <aside className="pc-inbox"><div className="pc-inbox-heading"><h2>Conversations</h2><button onClick={() => setRevision(n => n + 1)} disabled={loading} aria-label="Refresh chats">↻</button></div>
         <div className="pc-search"><span aria-hidden="true">⌕</span><input aria-label="Search conversations" placeholder="Search people or journeys" value={query} onChange={e => setQuery(e.target.value)} />{query && <button type="button" className="pc-search-clear" onClick={() => setQuery("")} aria-label="Clear search">×</button>}</div>

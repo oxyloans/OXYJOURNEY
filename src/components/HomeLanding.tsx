@@ -3,6 +3,7 @@ import Icon3D from "./Icon3D";
 import HomeHeader, { TAGLINE } from "./HomeHeader";
 // @ts-ignore CSS is loaded by the bundler; TypeScript may not have a CSS module declaration.
 import "./HomeLanding.css";
+import FloatingTollFreeHelpline from "./FloatingTollFreeHelpline";
 
 export type ChatStart = {
   /** First message to send automatically when the chat opens. */
@@ -166,6 +167,8 @@ export default function HomeLanding({ onStart, onBusinessCard }: HomeLandingProp
           </div>
         </section>
       </main>
+
+      <FloatingTollFreeHelpline />
 
       <footer className="hl-footer">
         <p>{TAGLINE}.</p>

@@ -44,7 +44,7 @@ export default function AdminLogin({ onLoginSuccess }: AdminLoginProps) {
           <div className="al-header">
             <div className="al-brand-wrapper">
               <img
-                src={LOGO}
+                src={LOGO} width={340} height={63} decoding="async"
                 alt="OXY Journeys"
                 className="al-brand-logo"
                 onError={(e) => {

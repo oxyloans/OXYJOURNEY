@@ -1,4 +1,6 @@
 import {
+  lazy,
+  Suspense,
   Children,
   createContext,
   isValidElement,
@@ -12,11 +14,11 @@ import {
   type KeyboardEvent,
   type ReactNode,
 } from "react";
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
 import { chatUrlFromReply, withoutRepeatedChatLink } from "../services/connectionChat";
 import ChatWindowLink from "./ChatWindowLink";
 import "./ChatBox.css";
+
+const MessageMarkdown = lazy(() => import("./MessageMarkdown"));
 
 export type ChatBoxVariant = "default" | "compact";
 export type ChatBoxDensity = "compact" | "standard" | "comfortable";
@@ -719,29 +721,6 @@ export default function ChatBox({
     return `Welcome to ${targetJourneyName}`;
   }, [targetJourneyName]);
 
-  const [typedText, setTypedText] = useState("");
-  const [isTyping, setIsTyping] = useState(false);
-
-  useEffect(() => {
-    setTypedText("");
-    setIsTyping(true);
-    let idx = 0;
-    const text = fullWelcomeText;
-    if (!text) return;
-
-    // Slower, deliberate typewriter rhythm (190ms per character)
-    const interval = setInterval(() => {
-      idx += 1;
-      setTypedText(text.slice(0, idx));
-      if (idx >= text.length) {
-        clearInterval(interval);
-        setIsTyping(false);
-      }
-    }, 190);
-
-    return () => clearInterval(interval);
-  }, [fullWelcomeText]);
-
   return (
     <section
       className={`cb-root cb-${variant} cb-density-${density} cb-layout-${layoutMode}`}
@@ -798,10 +777,16 @@ export default function ChatBox({
         <div className="cb-scroll" ref={scrollerRef} onScroll={handleScroll}>
           {!hasUserMessages ? (
             <div className="cb-hero-welcome">
-              <h1 className="cb-hero-title">
-                <span className="cb-hero-highlight">{typedText}</span>
-                {isTyping && <span className="cb-hero-caret" aria-hidden="true" />}
-              </h1>
+              <div className="cb-hero-intro">
+                <span className="cb-hero-eyebrow">
+                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" aria-hidden="true"><path d="m12 3 2.5 6.5L21 12l-6.5 2.5L12 21l-2.5-6.5L3 12l6.5-2.5L12 3Z" /></svg>
+                  OXY Journey Assistant
+                </span>
+                <h1 className="cb-hero-title">
+                  <span className="cb-hero-highlight">{fullWelcomeText}</span>
+                </h1>
+                <p className="cb-hero-subtitle">Choose a helpful starting point, or describe what you need in your own words.</p>
+              </div>
 
               {features.suggestions && suggestions && suggestions.length > 0 && (
                 <div className="cb-hero-grid" role="group" aria-label="Suggested questions">
@@ -848,9 +833,11 @@ export default function ChatBox({
                         ) : (
                           <>
                             <PickPersonContext.Provider value={message.id === lastCandidateListId && !message.streaming ? { onPick: pickPerson, connections, busy: isBusy } : undefined}>
-                              <ReactMarkdown remarkPlugins={[remarkGfm]} components={peopleMarkdownComponents}>
+                              <Suspense fallback={<div style={{ whiteSpace: "pre-wrap" }}>{withoutRepeatedChatLink(message.content, connections.values())}</div>}>
+                              <MessageMarkdown components={peopleMarkdownComponents}>
                                 {withoutRepeatedChatLink(message.content, connections.values())}
-                              </ReactMarkdown>
+                              </MessageMarkdown>
+                              </Suspense>
                             </PickPersonContext.Provider>
                             {!message.streaming && message.content && (
                               <div className="cb-message-actions">

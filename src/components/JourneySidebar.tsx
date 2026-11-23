@@ -444,7 +444,7 @@ export default function JourneySidebar({
   return (
     <div className="oxj-sidebar">
       <div className="oxj-sidebar-head">
-        <img src={LOGO} alt="OXY Journeys" />
+        <img src={LOGO} width={340} height={63} decoding="async" alt="OXY Journeys" />
         <button
           type="button"
           className="oxj-collapse-button"

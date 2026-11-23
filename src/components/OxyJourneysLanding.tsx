@@ -976,6 +976,7 @@ const adapter: ChatBoxAdapter = {
       )}
 
       <div
+        role="main"
         className={`oxj-workspace ${
           desktopSidebarExpanded ? "sidebar-expanded" : "sidebar-collapsed"
         }`}
