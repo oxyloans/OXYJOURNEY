@@ -27,7 +27,7 @@ export default function MobileJourneyHeader({
 
         <div className="oxj-mobile-brand-copy">
           <a href="/" className="oxj-mobile-logo-link" aria-label="OXY Journeys Home">
-            <img src={LOGO} alt="OXY Journeys" />
+            <img src={LOGO} width={340} height={63} decoding="async" alt="OXY Journeys" />
           </a>
           <span className="oxj-mobile-active-label">{activeLabel}</span>
         </div>

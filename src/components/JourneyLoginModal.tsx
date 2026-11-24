@@ -1,3 +1,4 @@
+import "./JourneyLoginModal.css";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   requestJourneyOtp,
@@ -403,3 +404,4 @@ export default function JourneyLoginModal({
     </div>
   );
 }
+

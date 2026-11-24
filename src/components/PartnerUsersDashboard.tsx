@@ -215,7 +215,7 @@ export default function PartnerUsersDashboard() {
   return (
     <div className={`pud-root ${selected ? "pud-has-selection" : ""}`}>
       <header className="pud-header">
-        <a href="/" className="pud-brand"><img src={LOGO} alt="OXY Journeys" /></a>
+        <a href="/" className="pud-brand"><img src={LOGO} width={340} height={63} decoding="async" alt="OXY Journeys" /></a>
         <div>
           <span className="pud-label">YOUR CONNECTIONS</span>
           <h1>Matched users</h1>

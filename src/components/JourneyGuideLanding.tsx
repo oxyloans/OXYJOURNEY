@@ -37,7 +37,7 @@ export default function JourneyGuideLanding({
     <div className="jg-page">
       <header className="jg-header">
         <div className="jg-shell jg-header-inner">
-          <img className="jg-logo" src={LOGO} alt="OXY Journeys" />
+          <img className="jg-logo" src={LOGO} width={340} height={63} decoding="async" alt="OXY Journeys" />
 
           <button
             className="jg-header-cta jg-shimmer"

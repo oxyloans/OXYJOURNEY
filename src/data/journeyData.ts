@@ -1,7 +1,8 @@
 import type { LifeStage, Platform } from "../types/journey";
 
-export const LOGO = "https://i.ibb.co/XxJJRXx5/jun-logo.png";
-export const SIDEBAR_ICON = "/favicon.svg";
+import logoUrl from "../assets/oxyjourneys-logo.webp";
+export const LOGO = logoUrl;
+export const SIDEBAR_ICON = "/favicon-64.png";
 
 /**
  * The frontend stores only the main life stages.

@@ -17,9 +17,12 @@ import type {
   ChatMessage,
 } from "../types/journey";
 import {
+  BusinessCardIcon,
   ChevronIcon,
+  HistoryIcon,
   LifeCycleIcon,
   NewChatIcon,
+  PartnerChatIcon,
   PlatformIcon,
   SearchIcon,
   UserIcon,
@@ -302,13 +305,11 @@ export default function JourneySidebar({
   const controlsId = useId();
   const [draftStageId, setDraftStageId] = useState(stageId);
   const [sidebarView, setSidebarView] = useState<"journeys" | "history" | "partners" | "cards">("journeys");
-  const [stageDropdownOpen, setStageDropdownOpen] = useState(mode === "life-cycle");
-  const [professionDropdownOpen, setProfessionDropdownOpen] = useState(mode === "profession");
   const [expandedPlatformId, setExpandedPlatformId] = useState(activePlatformId);
   const [morePlatformId, setMorePlatformId] = useState("");
-  const draftStage = LIFE_STAGES.find(stage => stage.id === draftStageId);
   const firstPrompt = historyMessages.find(message => message.role === "user");
   const hasSessionHistory = Boolean(sessionId && firstPrompt);
+  const chatCount = savedSessions.length || (hasSessionHistory ? 1 : 0);
 
   const userMobile = useMemo(() => {
     return (
@@ -383,8 +384,6 @@ export default function JourneySidebar({
   }, [activePlatformId]);
   useEffect(() => {
     setMorePlatformId("");
-    setStageDropdownOpen(mode === "life-cycle");
-    setProfessionDropdownOpen(mode === "profession");
     if (mode === "platform") {
       setExpandedPlatformId(activePlatformId || "oxyloans");
     }
@@ -445,7 +444,7 @@ export default function JourneySidebar({
   return (
     <div className="oxj-sidebar">
       <div className="oxj-sidebar-head">
-        <img src={LOGO} alt="OXY Journeys" />
+        <img src={LOGO} width={340} height={63} decoding="async" alt="OXY Journeys" />
         <button
           type="button"
           className="oxj-collapse-button"
@@ -457,54 +456,6 @@ export default function JourneySidebar({
       </div>
 
       <div className="oxj-sidebar-scroll">
-        <div className="oxj-mode-tabs">
-          <button
-            type="button"
-            className={sidebarView === "journeys" && mode === "life-cycle" ? "active life" : ""}
-            onClick={() => { setSidebarView("journeys"); onModeChange("life-cycle"); }}
-          >
-            LIFE JOURNEY
-          </button>
-          {SHOW_PLATFORM_JOURNEYS && (
-            <button
-              type="button"
-              className={sidebarView === "journeys" && mode === "platform" ? "active platform" : ""}
-              onClick={() => { setSidebarView("journeys"); onModeChange("platform"); }}
-            >
-              PLATFORM JOURNEY
-            </button>
-          )}
-          <button
-            type="button"
-            className={sidebarView === "journeys" && mode === "profession" ? "active platform" : ""}
-            onClick={() => { setSidebarView("journeys"); onModeChange("profession"); }}
-          >
-            PROFESSIONS
-          </button>
-        </div>
-
-        <div className="oxj-view-tabs">
-          <button
-            type="button"
-            className={sidebarView === "history" ? "active" : ""}
-            aria-pressed={sidebarView === "history"}
-            onClick={() => setSidebarView(view => (view === "history" ? "journeys" : "history"))}
-          >
-            History
-          </button>
-          <button
-            type="button"
-            className={sidebarView === "partners" ? "active" : ""}
-            aria-pressed={sidebarView === "partners"}
-            onClick={() => setSidebarView(view => (view === "partners" ? "journeys" : "partners"))}
-          >
-            Partner chats
-          </button>
-          <button type="button" className={sidebarView === "cards" ? "active" : ""} aria-pressed={sidebarView === "cards"} onClick={() => setSidebarView("cards")}>Business card history</button>
-        </div>
-        {sidebarView === "cards" && <BusinessCardHistory />}
-
-        {sidebarView === "journeys" && (<>
         <div className="oxj-search">
           <SearchIcon />
           <input
@@ -512,14 +463,18 @@ export default function JourneySidebar({
             value={search}
             onChange={(event) => onSearchChange(event.target.value)}
             placeholder={
-              mode === "life-cycle"
+              sidebarView !== "journeys"
+                ? "Search conversations"
+                : mode === "life-cycle"
                 ? "Search life stages"
                 : mode === "profession"
                   ? "Search professions"
                   : "Search platforms or journeys"
             }
             aria-label={
-              mode === "life-cycle"
+              sidebarView !== "journeys"
+                ? "Search conversations"
+                : mode === "life-cycle"
                 ? "Search life stages"
                 : mode === "profession"
                   ? "Search professions"
@@ -539,93 +494,159 @@ export default function JourneySidebar({
           )}
         </div>
 
-        {mode === "life-cycle" ? (
-          <section className="oxj-sidebar-section">
-            <div className="oxj-section-label">What stage are you at now?</div>
+        <nav className="oxj-sidebar-area-tabs" aria-label="Sidebar sections">
+          <button
+            type="button"
+            className={sidebarView === "journeys" ? "active" : ""}
+            aria-pressed={sidebarView === "journeys"}
+            onClick={() => {
+              setSidebarView("journeys");
+              onSearchChange("");
+              onModeChange("life-cycle");
+            }}
+          >
+            <LifeCycleIcon />
+            <span>Journeys</span>
+          </button>
+          <button
+            type="button"
+            className={sidebarView !== "journeys" ? "active" : ""}
+            aria-pressed={sidebarView !== "journeys"}
+            onClick={() => {
+              setSidebarView("history");
+              onSearchChange("");
+            }}
+          >
+            <HistoryIcon />
+            <span>History</span>
+          </button>
+        </nav>
 
-            <div className={`oxj-platform-list oxj-life-dropdown ${stageDropdownOpen ? "is-open" : ""}`}>
+        <div className="oxj-reference-eyebrow">
+          {sidebarView === "journeys" ? "Journey categories" : "Your activity"}
+        </div>
+
+        {sidebarView === "journeys" ? (
+          <nav className="oxj-reference-sections" aria-label="Journey types">
+            <button
+              type="button"
+              className={mode === "life-cycle" ? "active" : ""}
+              aria-pressed={mode === "life-cycle"}
+              onClick={() => { onSearchChange(""); onModeChange("life-cycle"); }}
+            >
+              <span className="oxj-ref-icon"><LifeCycleIcon /></span>
+              <span className="oxj-ref-label">Life Journey</span>
+              <ChevronIcon className="oxj-ref-chevron" />
+            </button>
+            {SHOW_PLATFORM_JOURNEYS && (
               <button
                 type="button"
-                className="oxj-platform-trigger oxj-life-trigger"
-                onClick={() => setStageDropdownOpen(open => !open)}
-                aria-expanded={stageDropdownOpen}
-                aria-controls={`${controlsId}-life-stages`}
+                className={mode === "platform" ? "active" : ""}
+                aria-pressed={mode === "platform"}
+                onClick={() => { onSearchChange(""); onModeChange("platform"); }}
               >
-                <LifeCycleIcon />
-                <strong>{draftStage?.title || "Select your life stage"}</strong>
-                <ChevronIcon className={stageDropdownOpen ? "rotate" : ""} />
+                <span className="oxj-ref-icon"><PlatformIcon /></span>
+                <span className="oxj-ref-label">Platform Journey</span>
+                <ChevronIcon className="oxj-ref-chevron" />
               </button>
-              {stageDropdownOpen && (
-                <div id={`${controlsId}-life-stages`} className="oxj-journey-list oxj-stage-options" role="group" aria-label="Choose a life stage">
-                  {filteredStages.length ? filteredStages.map(stage => (
-                    <button
-                      type="button"
-                      key={stage.id}
-                      className={`oxj-journey-row ${draftStageId === stage.id ? "selected" : ""}`}
-                      aria-pressed={draftStageId === stage.id}
-                      onClick={() => { setDraftStageId(stage.id); onStageSelect(stage); setStageDropdownOpen(false); }}
-                    >
-                      <span className="oxj-journey-dot" />
-                      <span><strong>{stage.title}</strong></span>
-                      {draftStageId === stage.id && <span className="oxj-stage-check" aria-hidden="true">✓</span>}
-                    </button>
-                  )) : <div className="oxj-list-empty">No matching life stages.</div>}
-                </div>
-              )}
-            </div>
-            {draftStage && <p className="oxj-stage-description">{draftStage.description}</p>}
-            <div className="oxj-stage-save-row">
-              <span className="oxj-stage-save-hint" role="status">{draftStageId && stageId === draftStageId ? "Saved life stage" : "Select a stage, then save."}</span>
-              {/* Already-saved stage needs no Save; it returns when another stage is picked. */}
-              {!(draftStageId && stageId === draftStageId) && (
+            )}
+            <button
+              type="button"
+              className={mode === "profession" ? "active" : ""}
+              aria-pressed={mode === "profession"}
+              onClick={() => { onSearchChange(""); onModeChange("profession"); }}
+            >
+              <span className="oxj-ref-icon"><UserIcon /></span>
+              <span className="oxj-ref-label">Professions</span>
+              <ChevronIcon className="oxj-ref-chevron" />
+            </button>
+          </nav>
+        ) : (
+          <nav className="oxj-reference-sections" aria-label="History types">
+            <button
+              type="button"
+              className={sidebarView === "history" ? "active" : ""}
+              aria-pressed={sidebarView === "history"}
+              onClick={() => setSidebarView("history")}
+            >
+              <span className="oxj-ref-icon"><HistoryIcon /></span>
+              <span className="oxj-ref-label">Chat History</span>
+              {chatCount > 0 && <span className="oxj-ref-count">{chatCount}</span>}
+              <ChevronIcon className="oxj-ref-chevron" />
+            </button>
+            <button
+              type="button"
+              className={sidebarView === "partners" ? "active" : ""}
+              aria-pressed={sidebarView === "partners"}
+              onClick={() => setSidebarView("partners")}
+            >
+              <span className="oxj-ref-icon"><PartnerChatIcon /></span>
+              <span className="oxj-ref-label">Partner Chats</span>
+              {partnerChats.length > 0 && <span className="oxj-ref-count">{partnerChats.length}</span>}
+              <ChevronIcon className="oxj-ref-chevron" />
+            </button>
+            <button
+              type="button"
+              className={sidebarView === "cards" ? "active" : ""}
+              aria-pressed={sidebarView === "cards"}
+              onClick={() => setSidebarView("cards")}
+            >
+              <span className="oxj-ref-icon"><BusinessCardIcon /></span>
+              <span className="oxj-ref-label">Business Card History</span>
+              <ChevronIcon className="oxj-ref-chevron" />
+            </button>
+          </nav>
+        )}
+
+        <div className="oxj-sidebar-list">
+        {sidebarView === "cards" && (
+          <div className="oxj-bch-wrap">
+            <BusinessCardHistory />
+          </div>
+        )}
+
+        {sidebarView === "journeys" && (<>
+
+        {mode === "life-cycle" ? (
+          <section className="oxj-reference-entry-section" aria-label="Life Journey">
+            <div className="oxj-reference-subtitle">Life Journey</div>
+            <div className="oxj-reference-entry-list">
+              {filteredStages.length ? filteredStages.map(stage => (
                 <button
                   type="button"
-                  className="oxj-stage-save-button"
-                  disabled={!draftStage}
-                  onClick={() => { if (draftStage) { onStageSelect(draftStage); setStageDropdownOpen(false); } }}
-                >Save</button>
-              )}
+                  key={stage.id}
+                  className={`oxj-reference-entry ${draftStageId === stage.id ? "selected" : ""}`}
+                  aria-pressed={draftStageId === stage.id}
+                  onClick={() => { setDraftStageId(stage.id); onStageSelect(stage); }}
+                >
+                  <span className="oxj-reference-dot" />
+                  <span>{stage.title}</span>
+                  {draftStageId === stage.id && <span className="oxj-reference-check" aria-hidden="true">✓</span>}
+                </button>
+              )) : <div className="oxj-list-empty">No matching life stages.</div>}
             </div>
-
           </section>
         ) : mode === "profession" ? (
-          <section className="oxj-sidebar-section">
-            <div className="oxj-section-label">Who are you looking for?</div>
-
-            <div className={`oxj-platform-list oxj-life-dropdown ${professionDropdownOpen ? "is-open" : ""}`}>
-              <button
-                type="button"
-                className="oxj-platform-trigger oxj-life-trigger"
-                onClick={() => setProfessionDropdownOpen(open => !open)}
-                aria-expanded={professionDropdownOpen}
-                aria-controls={`${controlsId}-professions`}
-              >
-                <UserIcon />
-                <strong>{(() => { const current = TOP_CLASSIFICATIONS.find(item => item.name === activeProfession); return current ? classificationLabel(current) : "Select a profession"; })()}</strong>
-                <ChevronIcon className={professionDropdownOpen ? "rotate" : ""} />
-              </button>
-              {professionDropdownOpen && (
-                <div id={`${controlsId}-professions`} className="oxj-journey-list oxj-stage-options" role="group" aria-label="Choose a profession">
-                  {filteredProfessions.length ? filteredProfessions.map(item => {
-                    const selected = item.name === activeProfession;
-                    return (
-                      <button
-                        type="button"
-                        key={item.name}
-                        className={`oxj-journey-row ${selected ? "selected" : ""}`}
-                        aria-pressed={selected}
-                        onClick={() => { onProfessionSelect?.(item.name); setProfessionDropdownOpen(false); }}
-                      >
-                        <span className="oxj-journey-dot" />
-                        <span><strong>{classificationLabel(item)}</strong></span>
-                        {selected && <span className="oxj-stage-check" aria-hidden="true">✓</span>}
-                      </button>
-                    );
-                  }) : <div className="oxj-list-empty">No matching professions.</div>}
-                </div>
-              )}
+          <section className="oxj-reference-entry-section" aria-label="Professions">
+            <div className="oxj-reference-subtitle">Professions</div>
+            <div className="oxj-reference-entry-list">
+              {filteredProfessions.length ? filteredProfessions.map(item => {
+                const selected = item.name === activeProfession;
+                return (
+                  <button
+                    type="button"
+                    key={item.name}
+                    className={`oxj-reference-entry ${selected ? "selected" : ""}`}
+                    aria-pressed={selected}
+                    onClick={() => onProfessionSelect?.(item.name)}
+                  >
+                    <span className="oxj-reference-dot" />
+                    <span>{classificationLabel(item)}</span>
+                    {selected && <span className="oxj-reference-check" aria-hidden="true">✓</span>}
+                  </button>
+                );
+              }) : <div className="oxj-list-empty">No matching professions.</div>}
             </div>
-            <p className="oxj-stage-description">Pick a profession and we&rsquo;ll help you meet the right people.</p>
           </section>
         ) : (
           <section className="oxj-sidebar-section">
@@ -727,7 +748,7 @@ export default function JourneySidebar({
           <section className="oxj-history-section" aria-label="Chat History">
             <div className="oxj-history-head">
               <div>
-                <span className="oxj-section-label">Chat History</span>
+                <span className="oxj-section-label">Recent Chats</span>
                 <small>Your conversations</small>
               </div>
               <span className="oxj-history-count">{savedSessions.length}</span>
@@ -749,7 +770,7 @@ export default function JourneySidebar({
                   <span className="oxj-history-bubble">↗</span>
                   <span className="oxj-session-history-copy">
                     <strong>{item.title}</strong>
-                    <small>{item.id === sessionId ? "Current chat" : "Open conversation"}</small>
+                    {item.id === sessionId && <small>Current chat</small>}
                   </span>
                 </button>
               ))}
@@ -820,12 +841,13 @@ export default function JourneySidebar({
                 <span className="oxj-history-bubble">↗</span>
                 <span className="oxj-session-history-copy">
                   <strong>{firstPrompt?.content}</strong>
-                  <small>{historyMessages.length} messages · One conversation</small>
+                  <small>{historyMessages.length} messages</small>
                 </span>
               </button>
             </div>
           </section>
         )}
+        </div>
       </div>
 
       <div className="oxj-sidebar-footer">

@@ -252,7 +252,7 @@ function AdminDashboardMain({ onLogout }: { onLogout: () => void }) {
           <div className="ad-navbar-left">
             <div className="ad-brand">
               <img
-                src={LOGO}
+                src={LOGO} width={340} height={63} decoding="async"
                 alt="OXY Journeys"
                 className="ad-brand-logo"
                 onError={(e) => {

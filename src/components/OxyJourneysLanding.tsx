@@ -712,8 +712,11 @@ export default function OxyJourneysLanding({
 
   function beforeSend(message: string) {
     if (getJourneyIdentity()) return true;
-    const journeyRequiresLogin = mode === "platform" || mode === "life-cycle";
-    if (!journeyRequiresLogin && guestPromptCount.current < 3) return true;
+    // Keep the guest flow consistent across Life Journeys, Platform Journeys,
+    // and Professions: allow three answered prompts, then ask the user to sign
+    // in before sending prompt four. The first reply can therefore ask for the
+    // user's name, which is retained in PENDING_NAME_KEY until login succeeds.
+    if (guestPromptCount.current < 3) return true;
     pendingPrompt.current = message;
     setLoginOpen(true);
     return false;
@@ -764,7 +767,7 @@ export default function OxyJourneysLanding({
       }
       const chatWindowUrl = getChatWindowUrl(result.chatWindowUrl) || getChatWindowUrl(streamedChatWindowUrl);
       if (!streamed && !result.reply?.trim() && !chatWindowUrl) throw new Error("Empty reply");
-      if (chatWindowUrl) {
+      if (chatWindowUrl && !/\/oxy-journey\/chat\//i.test(result.reply || "")) {
         const replyWithButton = chatWindowButtonReply(chatWindowUrl);
         if (onReplace) onReplace(replyWithButton);
         else onChunk(replyWithButton);
@@ -976,6 +979,7 @@ const adapter: ChatBoxAdapter = {
       )}
 
       <div
+        role="main"
         className={`oxj-workspace ${
           desktopSidebarExpanded ? "sidebar-expanded" : "sidebar-collapsed"
         }`}
