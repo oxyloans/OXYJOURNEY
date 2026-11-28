@@ -1,7 +1,8 @@
-import { useState, type ReactNode } from "react";
+import { lazy, Suspense, useState, type ReactNode } from "react";
 import { LOGO } from "../data/journeyData";
 import { getJourneyIdentity } from "../services/vibeCodeApi";
-import JourneyLoginModal from "./JourneyLoginModal";
+const JourneyLoginModal = lazy(() => import("./JourneyLoginModal"));
+// @ts-ignore CSS is loaded by the bundler and does not have TypeScript declarations.
 import "./HomeLanding.css";
 
 export const TAGLINE = "Every journey, one partner";
@@ -33,7 +34,7 @@ export default function HomeHeader({ onAssistant, onHome, onLoginSuccess, rightS
             aria-label="OXY Journeys home"
             onClick={onHome ? event => { event.preventDefault(); onHome(); } : undefined}
           >
-            <img src={LOGO} alt="OXY Journeys" />
+            <img src={LOGO} width={340} height={63} decoding="async" alt="OXY Journeys" />
             <span className="hl-brand-tagline">{TAGLINE}</span>
           </a>
 
@@ -60,7 +61,7 @@ export default function HomeHeader({ onAssistant, onHome, onLoginSuccess, rightS
         </div>
       </header>
 
-      <JourneyLoginModal
+      {loginOpen && <Suspense fallback={<span role="status">Loading sign in…</span>}><JourneyLoginModal
         open={loginOpen}
         sessionId=""
         onClose={() => setLoginOpen(false)}
@@ -69,7 +70,7 @@ export default function HomeHeader({ onAssistant, onHome, onLoginSuccess, rightS
           setLoginOpen(false);
           onLoginSuccess?.();
         }}
-      />
+      /></Suspense>}
     </>
   );
 }

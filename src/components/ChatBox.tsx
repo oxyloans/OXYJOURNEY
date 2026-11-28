@@ -1,4 +1,6 @@
 import {
+  lazy,
+  Suspense,
   Children,
   createContext,
   isValidElement,
@@ -12,9 +14,11 @@ import {
   type KeyboardEvent,
   type ReactNode,
 } from "react";
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
+import { chatUrlFromReply, withoutRepeatedChatLink } from "../services/connectionChat";
+import ChatWindowLink from "./ChatWindowLink";
 import "./ChatBox.css";
+
+const MessageMarkdown = lazy(() => import("./MessageMarkdown"));
 
 export type ChatBoxVariant = "default" | "compact";
 export type ChatBoxDensity = "compact" | "standard" | "comfortable";
@@ -215,19 +219,16 @@ const markdownComponents = {
   ),
 };
 
-// Rotating status words while the agent works, in the spirit of Claude's "Pondering…".
-// They describe what OXY Journeys actually does: understand a need and match it to people.
+// Rotating journey stages keep longer responses feeling active without inventing a percentage.
 const THINKING_TERMS = [
-  "Listening closely",
-  "Understanding your need",
-  "Mapping your requirement",
-  "Scanning our network",
-  "Matching you with people",
-  "Connecting the dots",
-  "Charting your journey",
-  "Finding the right fit",
-  "Weighing the options",
-  "Lining up your next step",
+  "Listening to what matters",
+  "Understanding your goal",
+  "Mapping the best path",
+  "Exploring relevant options",
+  "Scanning the OXY network",
+  "Connecting the right signals",
+  "Finding your strongest match",
+  "Shaping your next step",
 ];
 
 function ThinkingIndicator({ longer }: { longer: boolean }) {
@@ -238,9 +239,18 @@ function ThinkingIndicator({ longer }: { longer: boolean }) {
   }, []);
   return (
     <div className="cb-response-loader" role="status" aria-label="OXY AI is preparing a response">
-      <span key={index} className="cb-thinking-text">{THINKING_TERMS[index]}</span>
-      <span className="cb-thinking-dots" aria-hidden="true"><i /><i /><i /></span>
-      {longer && <span className="cb-thinking-note">taking a little longer</span>}
+      <div className="cb-generation-copy">
+        <span key={index} className="cb-thinking-text">{THINKING_TERMS[index]}</span>
+        <span className="cb-journey-progress" aria-hidden="true">
+          <i className="cb-journey-node cb-journey-node-one" />
+          <i className="cb-journey-node cb-journey-node-two" />
+          <i className="cb-journey-node cb-journey-node-three" />
+          <span className="cb-journey-runner">
+            <svg viewBox="0 0 24 24" fill="none"><path d="m12 4 2 5.5 5.5 2-5.5 2-2 5.5-2-5.5-5.5-2 5.5-2L12 4Z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" /></svg>
+          </span>
+        </span>
+      </div>
+      {longer && <span className="cb-thinking-note">Still working—finding the most useful answer</span>}
     </div>
   );
 }
@@ -260,12 +270,18 @@ const initialsOf = (name: string) =>
  * "Name — Role" lists (the people the agent suggests) render as pickable cards.
  * Any other ordered list stays a normal list. Without onPick the cards are read-only.
  */
-const PickPersonContext = createContext<((name: string) => void) | undefined>(undefined);
+type PickPersonState = {
+  onPick: (name: string) => void;
+  connections: Map<string, string>;
+  busy: boolean;
+};
+
+const PickPersonContext = createContext<PickPersonState | undefined>(undefined);
 
 const peopleMarkdownComponents = {
     ...markdownComponents,
     ol: ({ children, ...props }: any) => {
-      const onPick = useContext(PickPersonContext);
+      const picker = useContext(PickPersonContext);
       const items = Children.toArray(children).filter(isValidElement) as any[];
       const people = items.length > 0 && items.every(item => /\s[—–-]\s/.test(textOf(item.props.children)));
       if (!people) return <ol {...props}>{children}</ol>;
@@ -273,6 +289,8 @@ const peopleMarkdownComponents = {
         <div className="cb-people" role="list">
           {items.map((item, index) => {
             const [name, ...rest] = textOf(item.props.children).trim().split(/\s[—–-]\s/);
+            const chatUrl = picker?.connections.get(name.trim().toLowerCase());
+            const connected = Boolean(chatUrl);
             const role = rest.join(" — ").trim();
             // Long specialty lists ("A, B, C, …") become short tags instead of a wall of text.
             const tags = role.split(/\s*,\s*/).map(tag => tag.trim()).filter(Boolean);
@@ -288,11 +306,14 @@ const peopleMarkdownComponents = {
                     </span>
                   )}
                 </span>
-                {onPick && <span className="cb-person-cta">Connect<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 12h14m-5-5 5 5-5 5" /></svg></span>}
+                {picker && <span className="cb-person-cta">{connected ? "Connected" : "Connect"}{!connected && <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 12h14m-5-5 5 5-5 5" /></svg>}</span>}
               </>
             );
-            return onPick ? (
-              <button key={index} type="button" role="listitem" className="cb-person" style={{ animationDelay: `${index * 70}ms` }} onClick={() => onPick(name.trim())} aria-label={`Connect with ${name.trim()}`}>{body}</button>
+            return picker ? (
+              <div key={index} role="listitem" className="cb-person-row">
+                <button type="button" className={`cb-person${connected ? " is-connected" : ""}`} style={{ animationDelay: `${index * 70}ms` }} disabled={connected || picker.busy} onClick={() => picker.onPick(name.trim())} aria-label={connected ? `Already connected with ${name.trim()}` : `Connect with ${name.trim()}`}>{body}</button>
+                {chatUrl && <ChatWindowLink href={chatUrl} partnerName={name.trim()} />}
+              </div>
             ) : (
               <div key={index} role="listitem" className="cb-person is-static" style={{ animationDelay: `${index * 70}ms` }}>{body}</div>
             );
@@ -667,8 +688,26 @@ export default function ChatBox({
     return filterIntroMessages(activeConversation?.messages || []);
   }, [activeConversation?.messages]);
 
-  // Only the newest reply offers one-click "Connect" cards; older ones stay read-only.
-  const lastAssistantId = [...visibleMessages].reverse().find(message => message.role === "assistant")?.id;
+  // Keep the newest candidate list active so another person can be connected later.
+  const lastCandidateListId = [...visibleMessages].reverse().find(message =>
+    message.role === "assistant" && /(?:^|\n)\s*1\.\s+.+\s[—–-]\s/m.test(message.content)
+  )?.id;
+  const connections = useMemo(() => {
+    const links = new Map<string, string>();
+    let requestedName: string | undefined;
+    const listIndex = visibleMessages.findIndex(message => message.id === lastCandidateListId);
+    for (const message of visibleMessages.slice(listIndex < 0 ? 0 : listIndex + 1)) {
+      if (message.role === "user") {
+        requestedName = message.content.match(/^I want to connect with\s+(.+?)\s*$/i)?.[1]?.trim().toLowerCase();
+        continue;
+      }
+      if (message.role !== "assistant" || message.streaming) continue;
+      const name = message.content.match(/You're (?:already )?connected with\s+(.+?)(?:\. (?=We've|We couldn't|Continue)|, and we've)/i)?.[1]?.trim().toLowerCase() || requestedName;
+      const url = chatUrlFromReply(message.content);
+      if (name && url) links.set(name, url);
+    }
+    return links;
+  }, [visibleMessages, lastCandidateListId]);
   const submitRef = useRef(submit);
   submitRef.current = submit;
   const pickPerson = useMemo(() => (name: string) => void submitRef.current(`I want to connect with ${name}`), []);
@@ -687,29 +726,6 @@ export default function ChatBox({
   const fullWelcomeText = useMemo(() => {
     return `Welcome to ${targetJourneyName}`;
   }, [targetJourneyName]);
-
-  const [typedText, setTypedText] = useState("");
-  const [isTyping, setIsTyping] = useState(false);
-
-  useEffect(() => {
-    setTypedText("");
-    setIsTyping(true);
-    let idx = 0;
-    const text = fullWelcomeText;
-    if (!text) return;
-
-    // Slower, deliberate typewriter rhythm (190ms per character)
-    const interval = setInterval(() => {
-      idx += 1;
-      setTypedText(text.slice(0, idx));
-      if (idx >= text.length) {
-        clearInterval(interval);
-        setIsTyping(false);
-      }
-    }, 190);
-
-    return () => clearInterval(interval);
-  }, [fullWelcomeText]);
 
   return (
     <section
@@ -755,9 +771,12 @@ export default function ChatBox({
                   ☰
                 </button>
               )}
+              <span className="cb-brand-mark" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none"><path d="m12 3 2.5 6.5L21 12l-6.5 2.5L12 21l-2.5-6.5L3 12l6.5-2.5L12 3Z" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round" /></svg>
+              </span>
               <div>
                 <strong>{headerTitle || activeConversation?.title || "OXY Journeys"}</strong>
-                <span>{headerSubtitle || activeConversation?.subtitle || membersLabel}</span>
+                <span className="cb-header-subtitle"><i aria-hidden="true" />{headerSubtitle || activeConversation?.subtitle || membersLabel}</span>
               </div>
             </div>
             {headerAction}
@@ -767,14 +786,27 @@ export default function ChatBox({
         <div className="cb-scroll" ref={scrollerRef} onScroll={handleScroll}>
           {!hasUserMessages ? (
             <div className="cb-hero-welcome">
-              <h1 className="cb-hero-title">
-                <span className="cb-hero-highlight">{typedText}</span>
-                {isTyping && <span className="cb-hero-caret" aria-hidden="true" />}
-              </h1>
+              <div className="cb-hero-constellation" aria-hidden="true">
+                <span className="cb-orbit cb-orbit-one" />
+                <span className="cb-orbit cb-orbit-two" />
+                <span className="cb-orbit-dot cb-orbit-dot-one" />
+                <span className="cb-orbit-dot cb-orbit-dot-two" />
+                <span className="cb-constellation-core"><svg viewBox="0 0 24 24" fill="none"><path d="m12 3 2.5 6.5L21 12l-6.5 2.5L12 21l-2.5-6.5L3 12l6.5-2.5L12 3Z" stroke="currentColor" strokeWidth="1.55" strokeLinejoin="round" /></svg></span>
+              </div>
+              <div className="cb-hero-intro">
+                <span className="cb-hero-eyebrow">
+                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" aria-hidden="true"><path d="m12 3 2.5 6.5L21 12l-6.5 2.5L12 21l-2.5-6.5L3 12l6.5-2.5L12 3Z" /></svg>
+                  OXY Journey Assistant
+                </span>
+                <h1 className="cb-hero-title">
+                  <span className="cb-hero-highlight">{fullWelcomeText}</span>
+                </h1>
+                <p className="cb-hero-subtitle">Choose a helpful starting point, or describe what you need in your own words.</p>
+              </div>
 
               {features.suggestions && suggestions && suggestions.length > 0 && (
                 <div className="cb-hero-grid" role="group" aria-label="Suggested questions">
-                  {Array.from(new Set(suggestions)).slice(0, 4).map((suggestion) => (
+                  {Array.from(new Set(suggestions)).slice(0, 4).map((suggestion, index) => (
                     <button
                       type="button"
                       key={suggestion}
@@ -789,7 +821,10 @@ export default function ChatBox({
                         }
                       }}
                     >
-                      <span className="cb-hero-card-text">{suggestion}</span>
+                      <span className="cb-hero-card-copy">
+                        <small>{index === 0 ? "Popular starting point" : "Suggested prompt"}</small>
+                        <span className="cb-hero-card-text">{suggestion}</span>
+                      </span>
                       <span className="cb-hero-card-icon" aria-hidden="true">
                         <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                           <path d="M7 17L17 7M17 7H9M17 7V15" />
@@ -812,14 +847,17 @@ export default function ChatBox({
                   <article className={`cb-message ${message.role}`}>
                     {message.role === "assistant" ? (
                       <div className="cb-markdown">
+                        <span className="cb-message-author">OXY AI</span>
                         {message.streaming && !message.content ? (
                           <ThinkingIndicator longer={waitingLonger} />
                         ) : (
                           <>
-                            <PickPersonContext.Provider value={message.id === lastAssistantId && !message.streaming && !isBusy ? pickPerson : undefined}>
-                              <ReactMarkdown remarkPlugins={[remarkGfm]} components={peopleMarkdownComponents}>
-                                {message.content}
-                              </ReactMarkdown>
+                            <PickPersonContext.Provider value={message.id === lastCandidateListId && !message.streaming ? { onPick: pickPerson, connections, busy: isBusy } : undefined}>
+                              <Suspense fallback={<div style={{ whiteSpace: "pre-wrap" }}>{withoutRepeatedChatLink(message.content, connections.values())}</div>}>
+                              <MessageMarkdown components={peopleMarkdownComponents}>
+                                {withoutRepeatedChatLink(message.content, connections.values())}
+                              </MessageMarkdown>
+                              </Suspense>
                             </PickPersonContext.Provider>
                             {!message.streaming && message.content && (
                               <div className="cb-message-actions">
@@ -940,6 +978,10 @@ export default function ChatBox({
                 </button>
               </>
             )}
+
+            <span className="cb-composer-spark" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none"><path d="m12 4 2 5.5 5.5 2-5.5 2-2 5.5-2-5.5-5.5-2 5.5-2L12 4Z" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" /></svg>
+            </span>
 
             <textarea
               ref={inputRef}

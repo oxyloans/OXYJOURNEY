@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type FormEvent, type KeyboardEvent, type MouseEvent, type ReactNode } from "react";
 import Icon3D from "./Icon3D";
 import HomeHeader, { TAGLINE } from "./HomeHeader";
+import LoanPromotionCard from "./LoanPromotionCard";
 // @ts-ignore CSS is loaded by the bundler; TypeScript may not have a CSS module declaration.
 import "./HomeLanding.css";
 
@@ -124,6 +125,10 @@ export default function HomeLanding({ onStart, onBusinessCard }: HomeLandingProp
               </button>
             ))}
           </div>
+        </section>
+
+        <section className="hl-loan-promo hl-shell" aria-label="OXYLoans">
+          <LoanPromotionCard />
         </section>
 
         <section className="hl-section hl-shell" aria-labelledby="hl-explore-title">

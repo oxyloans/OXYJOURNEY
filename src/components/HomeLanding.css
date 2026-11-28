@@ -66,6 +66,7 @@ html:has(.hl-page){scroll-behavior:smooth}
 
 
 /* Sections */
+.hl-loan-promo{padding-top:42px}
 .hl-section{padding-top:48px}
 .hl-section h2{margin:0 0 16px;font-size:22px;font-weight:800;letter-spacing:-.015em;color:#141a2b}
 .hl-section-head{margin-bottom:18px}
@@ -97,6 +98,7 @@ html:has(.hl-page){scroll-behavior:smooth}
   .hl-assistant{padding:8px 13px;font-size:12.5px}
   .hl-account span{display:none}
   .hl-hero{padding-top:40px}
+  .hl-loan-promo{padding-top:32px}
   .hl-prompt{padding:12px 12px 12px 14px;border-radius:20px}
 }
 @media (max-width:980px){.hl-cards{grid-template-columns:repeat(2,minmax(0,300px))}}

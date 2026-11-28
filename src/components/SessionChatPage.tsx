@@ -162,7 +162,7 @@ export default function SessionChatPage({ sessionId, embedded = false, roleOverr
 
   return <div className={`oj-chat-page sc-page ${embedded ? "oj-chat-embedded" : ""}`}>
     <header className="oj-chat-brand sc-top">
-      <a href="/" className="oj-chat-logo"><img src={LOGO} alt="OXY Journeys" /></a>
+      <a href="/" className="oj-chat-logo"><img src={LOGO} width={340} height={63} decoding="async" alt="OXY Journeys" /></a>
       <span className="oj-chat-tagline">Every journey, one partner</span>
       {!embedded && <PageNavigation page="chat" />}
     </header>

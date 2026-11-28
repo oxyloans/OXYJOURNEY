@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /oxy-journey/admin
+Disallow: /oxy-journey/chat/
+Disallow: /oxy-journey/partner/
+
+Sitemap: https://www.oxyjourneys.com/sitemap.xml

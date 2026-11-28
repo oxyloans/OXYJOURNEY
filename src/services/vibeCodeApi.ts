@@ -8,6 +8,8 @@ import { API_CONFIG } from "../config";
 export const STREAM_API_ROOT = API_CONFIG.stream.replace(/\/$/, "");
 
 export type VibeCodeMessageResponse = {
+  partnerNotified?: boolean | null;
+  userNotified?: boolean | null;
   chatWindowUrl?: string | null;
   loginRequired?: boolean;
   reply?: string | null;
@@ -236,6 +238,7 @@ export type BusinessCardUserHistoryResponse = {
     matchSessionId?: string | null;
     relatedMembers?: {
       candidateId: string;
+      memberId?: string | null;
       memberName: string | null;
       classification: string | null;
       source: string | null;
