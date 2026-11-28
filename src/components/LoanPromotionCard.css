@@ -140,6 +140,50 @@
   transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
 }
 
+.oxl-promo__actions {
+  display: flex;
+  flex: 0 0 auto;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 11px;
+  min-width: 194px;
+}
+
+.oxl-promo__ecosystem {
+  display: inline-flex;
+  min-height: 46px;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  padding: 11px 18px;
+  border: 1.5px solid #67e8f9;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.82);
+  box-shadow: 0 6px 18px rgba(8, 145, 178, 0.1);
+  color: #155e75;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+}
+
+.oxl-promo__ecosystem svg {
+  width: 18px;
+  height: 18px;
+}
+
+.oxl-promo__ecosystem:hover {
+  background: #ecfeff;
+  box-shadow: 0 10px 22px rgba(8, 145, 178, 0.16);
+  transform: translateY(-2px);
+}
+
+.oxl-promo__ecosystem:focus-visible {
+  outline: 3px solid #0ea5e9;
+  outline-offset: 3px;
+}
+
 .oxl-promo__action svg {
   width: 21px;
   height: 21px;
@@ -197,6 +241,11 @@
   .oxl-promo__action {
     align-self: center;
   }
+
+  .oxl-promo__actions {
+    align-self: center;
+    width: min(100%, 260px);
+  }
 }
 
 @media (max-width: 480px) {
@@ -237,6 +286,10 @@
   .oxl-promo__action {
     width: 100%;
   }
+
+  .oxl-promo__actions {
+    width: 100%;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -247,7 +300,8 @@
   }
 
   .oxl-promo__action,
-  .oxl-promo__action svg {
+  .oxl-promo__action svg,
+  .oxl-promo__ecosystem {
     transition: none;
   }
 }

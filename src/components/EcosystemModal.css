@@ -1,0 +1,175 @@
+.eco-modal,
+.eco-modal * {
+  box-sizing: border-box;
+}
+
+.eco-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+}
+
+.eco-modal__backdrop {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  background: rgba(15, 23, 42, 0.58);
+  backdrop-filter: blur(5px);
+  cursor: pointer;
+  animation: eco-fade-in 180ms ease-out;
+}
+
+.eco-modal__card {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  width: min(1180px, 96vw);
+  max-height: 94vh;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid rgba(203, 213, 225, 0.9);
+  border-radius: 24px;
+  background: #fff;
+  box-shadow: 0 28px 80px rgba(15, 23, 42, 0.3);
+  animation: eco-card-in 220ms ease-out;
+}
+
+.eco-modal__header {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 13px 18px;
+  border-bottom: 1px solid #e2e8f0;
+  background: #fff;
+}
+
+.eco-modal__title-wrap,
+.eco-modal__actions {
+  display: flex;
+  align-items: center;
+}
+
+.eco-modal__title-wrap {
+  min-width: 0;
+  gap: 11px;
+}
+
+.eco-modal__title-icon {
+  display: grid;
+  width: 36px;
+  height: 36px;
+  flex: 0 0 auto;
+  place-items: center;
+  border: 1px solid #c7d2fe;
+  border-radius: 10px;
+  background: #eef2ff;
+  color: #3730a3;
+}
+
+.eco-modal__title-wrap h2 {
+  margin: 0;
+  color: #0f172a;
+  font-size: 16px;
+  font-weight: 800;
+  line-height: 1.25;
+}
+
+.eco-modal__title-wrap div > span {
+  display: block;
+  margin-top: 2px;
+  color: #64748b;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.eco-modal__actions {
+  flex: 0 0 auto;
+  gap: 7px;
+}
+
+.eco-modal__actions a,
+.eco-modal__actions button {
+  display: inline-flex;
+  min-width: 36px;
+  height: 36px;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 0 10px;
+  border: 1px solid #dbe2ea;
+  border-radius: 10px;
+  background: #f8fafc;
+  color: #475569;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background 160ms ease, color 160ms ease, border-color 160ms ease;
+}
+
+.eco-modal__actions a:hover,
+.eco-modal__actions button:hover {
+  border-color: #a5b4fc;
+  background: #eef2ff;
+  color: #312e81;
+}
+
+.eco-modal__viewer {
+  display: flex;
+  min-height: 0;
+  flex: 1 1 auto;
+  align-items: center;
+  justify-content: center;
+  overflow: auto;
+  padding: 12px;
+  background: #f8fafc;
+}
+
+.eco-modal__viewer img {
+  display: block;
+  width: auto;
+  height: auto;
+  max-width: 100%;
+  max-height: calc(94vh - 76px);
+  border-radius: 14px;
+  object-fit: contain;
+  box-shadow: 0 2px 12px rgba(15, 23, 42, 0.08);
+}
+
+@keyframes eco-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes eco-card-in {
+  from { opacity: 0; transform: translateY(12px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@media (max-width: 640px) {
+  .eco-modal { padding: 8px; }
+  .eco-modal__card { width: 100%; max-height: 96vh; border-radius: 18px; }
+  .eco-modal__header { padding: 10px 11px; }
+  .eco-modal__title-wrap { gap: 8px; }
+  .eco-modal__title-icon { width: 32px; height: 32px; }
+  .eco-modal__title-wrap h2 { font-size: 14px; }
+  .eco-modal__title-wrap div > span { display: none; }
+  .eco-modal__actions a span { display: none; }
+  .eco-modal__actions a,
+  .eco-modal__actions button { width: 34px; min-width: 34px; height: 34px; padding: 0; }
+  .eco-modal__viewer { padding: 6px; }
+  .eco-modal__viewer img { max-height: calc(96vh - 62px); border-radius: 10px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .eco-modal__backdrop,
+  .eco-modal__card { animation: none; }
+}

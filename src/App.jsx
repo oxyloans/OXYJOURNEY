@@ -8,6 +8,8 @@ const PartnerChatsDashboard = lazy(() => import("./components/PartnerChatsDashbo
 const AdminDashboard = lazy(() => import("./components/admin/AdminDashboard"));
 const PartnerUsersDashboard = lazy(() => import("./components/PartnerUsersDashboard"));
 const PartnerLeadPage = lazy(() => import("./components/PartnerLeadPage"));
+const SalariedBorrowerChatPage = lazy(() => import("./components/SalariedBorrowerChatPage"));
+const AdminDashboardPage = lazy(() => import("./components/Admindashboardpage"));
 
 
 // Direct WhatsApp links must open this page without first visiting the home page.
@@ -37,6 +39,8 @@ function AppRoutes() {
   if (/^\/oxy-journey\/partner\/chats\/?$/.test(path)) return <PartnerChatsDashboard />;
   if (/^\/oxy-journey\/partner\/lead\/?$/.test(path)) return <PartnerLeadPage />;
   if (/^\/oxy-journey\/partner\/users\/?$/.test(path)) return <PartnerUsersDashboard />;
+  if (/^\/br-loan-application(?:\/.*)?$/.test(path)) return <SalariedBorrowerChatPage />;
+  if (/^\/br-application-status(?:\/.*)?$/.test(path)) return <AdminDashboardPage />;
   const match = /^\/oxy-journey\/chat\/([^/]+?)(?:\/(?:user|partner))?\/?$/.exec(path);
   if (match) {
     let sessionId = "";

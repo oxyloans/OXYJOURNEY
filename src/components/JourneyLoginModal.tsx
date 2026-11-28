@@ -393,7 +393,7 @@ export default function JourneyLoginModal({
             </div>
           )}
 
-          {notice &&<div className="oxj-login-status success">{notice}</div>}
+          {notice && <div className="oxj-login-status success">{notice}</div>}
           {error && <div className="oxj-login-status error">{error}</div>}
 
           <p className="oxj-login-footnote">
@@ -404,4 +404,3 @@ export default function JourneyLoginModal({
     </div>
   );
 }
-
